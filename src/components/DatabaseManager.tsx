@@ -16,95 +16,74 @@ import {
   Filter,
   RefreshCw
 } from 'lucide-react';
+import { useClients } from '@/hooks/useClients';
+import { useInvoices } from '@/hooks/useInvoices';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const DatabaseManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTable, setActiveTable] = useState('invoices');
 
-  // Mock database data
+  const { user } = useAuth();
+  const { data: clients = [] } = useClients();
+  const { data: invoices = [] } = useInvoices();
+
+  // Fetch invoice items
+  const { data: invoiceItems = [] } = useQuery({
+    queryKey: ['invoice_items', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from('invoice_items')
+        .select(`
+          *,
+          invoices!inner(user_id)
+        `)
+        .eq('invoices.user_id', user.id);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  // Fetch user profile
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['profiles', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
   const tables = {
-    invoices: [
-      {
-        id: 'inv-1',
-        invoice_number: 'INV-001',
-        client_id: 'client-1',
-        user_id: 'user-123',
-        total_amount: 2500.00,
-        status: 'paid',
-        issue_date: '2024-06-15',
-        due_date: '2024-07-15',
-        created_at: '2024-06-15T10:30:00Z'
-      },
-      {
-        id: 'inv-2',
-        invoice_number: 'INV-002',
-        client_id: 'client-2',
-        user_id: 'user-123',
-        total_amount: 3200.50,
-        status: 'pending',
-        issue_date: '2024-06-14',
-        due_date: '2024-07-14',
-        created_at: '2024-06-14T14:20:00Z'
-      }
-    ],
-    clients: [
-      {
-        id: 'client-1',
-        user_id: 'user-123',
-        company_name: 'Acme Corporation',
-        contact_name: 'John Smith',
-        email: 'john.smith@acme.com',
-        phone: '+1 (555) 123-4567',
-        address: '123 Business Ave, New York',
-        created_at: '2024-05-01T09:00:00Z'
-      },
-      {
-        id: 'client-2',
-        user_id: 'user-123',
-        company_name: 'Tech Solutions Inc',
-        contact_name: 'Sarah Johnson',
-        email: 'sarah@techsolutions.com',
-        phone: '+1 (555) 987-6543',
-        address: '456 Innovation Drive, San Francisco',
-        created_at: '2024-05-15T11:30:00Z'
-      }
-    ],
-    profiles: [
-      {
-        id: 'user-123',
-        first_name: 'Admin',
-        last_name: 'User',
-        email: 'admin@marvellous-steel.com',
-        created_at: '2024-01-01T00:00:00Z',
-        updated_at: '2024-06-01T10:00:00Z'
-      }
-    ],
-    invoice_items: [
-      {
-        id: 'item-1',
-        invoice_id: 'inv-1',
-        description: 'Steel Beams - Grade A',
-        quantity: 10,
-        unit_price: 250.00,
-        line_total: 2500.00,
-        created_at: '2024-06-15T10:35:00Z'
-      },
-      {
-        id: 'item-2',
-        invoice_id: 'inv-2',
-        description: 'Consultation Services',
-        quantity: 8,
-        unit_price: 400.06,
-        line_total: 3200.50,
-        created_at: '2024-06-14T14:25:00Z'
-      }
-    ]
+    invoices: invoices.map(inv => ({
+      ...inv,
+      client_name: inv.clients?.company_name || 'Unknown'
+    })),
+    clients,
+    profiles,
+    invoice_items: invoiceItems.map(item => ({
+      ...item,
+      invoices: undefined // Remove nested invoice data for cleaner display
+    }))
   };
 
   const tableConfigs = {
     invoices: {
       name: 'Invoices',
-      columns: ['id', 'invoice_number', 'client_id', 'total_amount', 'status', 'issue_date', 'due_date'],
+      columns: ['id', 'invoice_number', 'client_name', 'total_amount', 'status', 'issue_date', 'due_date'],
       editable: ['total_amount', 'status', 'issue_date', 'due_date']
     },
     clients: {
@@ -114,7 +93,7 @@ const DatabaseManager = () => {
     },
     profiles: {
       name: 'User Profiles',
-      columns: ['id', 'first_name', 'last_name', 'email', 'created_at'],
+      columns: ['id', 'first_name', 'last_name', 'created_at'],
       editable: ['first_name', 'last_name']
     },
     invoice_items: {

@@ -3,25 +3,37 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, TrendingUp, FileText, Users, DollarSign, AlertCircle } from 'lucide-react';
+import { useInvoices } from '@/hooks/useInvoices';
+import { useClients } from '@/hooks/useClients';
 
 const Dashboard = () => {
-  // Mock data - in real app, this would come from Supabase
-  const stats = {
-    totalRevenue: 125430,
-    monthlyRevenue: 23450,
-    totalInvoices: 156,
-    pendingInvoices: 12,
-    totalClients: 28,
-    overdueInvoices: 3
-  };
+  const { data: invoices = [] } = useInvoices();
+  const { data: clients = [] } = useClients();
 
-  const recentInvoices = [
-    { id: 'INV-001', client: 'Acme Corp', amount: 2500, status: 'paid', date: '2024-06-15' },
-    { id: 'INV-002', client: 'Tech Solutions', amount: 3200, status: 'pending', date: '2024-06-14' },
-    { id: 'INV-003', client: 'Steel Works Ltd', amount: 1800, status: 'overdue', date: '2024-06-10' },
-    { id: 'INV-004', client: 'Construction Co', amount: 4500, status: 'paid', date: '2024-06-12' },
-    { id: 'INV-005', client: 'Industrial Group', amount: 2100, status: 'pending', date: '2024-06-13' }
-  ];
+  // Calculate stats from real data
+  const totalRevenue = invoices
+    .filter(invoice => invoice.status === 'paid')
+    .reduce((sum, invoice) => sum + invoice.total_amount, 0);
+
+  const pendingInvoices = invoices.filter(invoice => invoice.status === 'pending').length;
+  const overdueInvoices = invoices.filter(invoice => {
+    const dueDate = new Date(invoice.due_date);
+    const today = new Date();
+    return invoice.status === 'pending' && dueDate < today;
+  }).length;
+
+  const monthlyRevenue = invoices
+    .filter(invoice => {
+      const issueDate = new Date(invoice.issue_date);
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      return invoice.status === 'paid' && 
+             issueDate.getMonth() === currentMonth && 
+             issueDate.getFullYear() === currentYear;
+    })
+    .reduce((sum, invoice) => sum + invoice.total_amount, 0);
+
+  const recentInvoices = invoices.slice(0, 5);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -67,10 +79,10 @@ const Dashboard = () => {
             <DollarSign className="h-4 w-4 text-primary-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalRevenue)}</div>
+            <div className="text-2xl font-bold text-gray-900">{formatCurrency(totalRevenue)}</div>
             <p className="text-xs text-green-600 flex items-center mt-1">
               <TrendingUp className="w-3 h-3 mr-1" />
-              +12.5% from last month
+              {invoices.filter(i => i.status === 'paid').length} paid invoices
             </p>
           </CardContent>
         </Card>
@@ -81,9 +93,9 @@ const Dashboard = () => {
             <TrendingUp className="h-4 w-4 text-primary-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{formatCurrency(stats.monthlyRevenue)}</div>
+            <div className="text-2xl font-bold text-gray-900">{formatCurrency(monthlyRevenue)}</div>
             <p className="text-xs text-steel-500 mt-1">
-              {stats.pendingInvoices} invoices pending
+              {pendingInvoices} invoices pending
             </p>
           </CardContent>
         </Card>
@@ -94,9 +106,9 @@ const Dashboard = () => {
             <FileText className="h-4 w-4 text-primary-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{stats.totalInvoices}</div>
+            <div className="text-2xl font-bold text-gray-900">{invoices.length}</div>
             <p className="text-xs text-steel-500 mt-1">
-              {stats.pendingInvoices} pending payment
+              {pendingInvoices} pending payment
             </p>
           </CardContent>
         </Card>
@@ -107,7 +119,7 @@ const Dashboard = () => {
             <Users className="h-4 w-4 text-primary-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{stats.totalClients}</div>
+            <div className="text-2xl font-bold text-gray-900">{clients.length}</div>
             <p className="text-xs text-steel-500 mt-1">
               Across all projects
             </p>
@@ -116,14 +128,14 @@ const Dashboard = () => {
       </div>
 
       {/* Alerts */}
-      {stats.overdueInvoices > 0 && (
+      {overdueInvoices > 0 && (
         <Card className="border-red-200 bg-red-50">
           <CardContent className="pt-6">
             <div className="flex items-center">
               <AlertCircle className="h-5 w-5 text-red-600 mr-3" />
               <div>
                 <h3 className="text-sm font-medium text-red-800">
-                  {stats.overdueInvoices} Overdue Invoice{stats.overdueInvoices !== 1 ? 's' : ''}
+                  {overdueInvoices} Overdue Invoice{overdueInvoices !== 1 ? 's' : ''}
                 </h3>
                 <p className="text-sm text-red-600 mt-1">
                   Please follow up on overdue payments to maintain cash flow.
@@ -145,20 +157,24 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentInvoices.map((invoice) => (
-                <div key={invoice.id} className="flex items-center justify-between p-3 bg-steel-50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-gray-900">{invoice.id}</p>
-                    <p className="text-sm text-steel-600">{invoice.client}</p>
+              {recentInvoices.length === 0 ? (
+                <p className="text-steel-600 text-center py-4">No invoices yet</p>
+              ) : (
+                recentInvoices.map((invoice) => (
+                  <div key={invoice.id} className="flex items-center justify-between p-3 bg-steel-50 rounded-lg">
+                    <div>
+                      <p className="font-medium text-gray-900">{invoice.invoice_number}</p>
+                      <p className="text-sm text-steel-600">{invoice.clients?.company_name || 'Unknown Client'}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-medium text-gray-900">{formatCurrency(invoice.total_amount)}</p>
+                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(invoice.status)}`}>
+                        {invoice.status}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-medium text-gray-900">{formatCurrency(invoice.amount)}</p>
-                    <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(invoice.status)}`}>
-                      {invoice.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
             <Button variant="outline" className="w-full mt-4">
               View All Invoices

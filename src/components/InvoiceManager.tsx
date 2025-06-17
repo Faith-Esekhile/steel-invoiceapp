@@ -15,54 +15,34 @@ import {
   MoreHorizontal,
   FileText
 } from 'lucide-react';
+import { useInvoices, useDeleteInvoice } from '@/hooks/useInvoices';
+import { useToast } from '@/hooks/use-toast';
 
 const InvoiceManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  // Mock invoice data
-  const invoices = [
-    {
-      id: 'INV-001',
-      client: 'Acme Corporation',
-      amount: 2500.00,
-      issueDate: '2024-06-15',
-      dueDate: '2024-07-15',
-      status: 'paid'
-    },
-    {
-      id: 'INV-002',
-      client: 'Tech Solutions Inc',
-      amount: 3200.50,
-      issueDate: '2024-06-14',
-      dueDate: '2024-07-14',
-      status: 'pending'
-    },
-    {
-      id: 'INV-003',
-      client: 'Steel Works Ltd',
-      amount: 1800.75,
-      issueDate: '2024-06-10',
-      dueDate: '2024-07-10',
-      status: 'overdue'
-    },
-    {
-      id: 'INV-004',
-      client: 'Construction Co',
-      amount: 4500.00,
-      issueDate: '2024-06-12',
-      dueDate: '2024-07-12',
-      status: 'paid'
-    },
-    {
-      id: 'INV-005',
-      client: 'Industrial Group',
-      amount: 2100.25,
-      issueDate: '2024-06-13',
-      dueDate: '2024-07-13',
-      status: 'draft'
+  const { data: invoices = [], isLoading } = useInvoices();
+  const deleteInvoice = useDeleteInvoice();
+  const { toast } = useToast();
+
+  const handleDelete = async (invoiceId: string) => {
+    if (confirm('Are you sure you want to delete this invoice?')) {
+      try {
+        await deleteInvoice.mutateAsync(invoiceId);
+        toast({
+          title: "Success",
+          description: "Invoice deleted successfully",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete invoice",
+          variant: "destructive",
+        });
+      }
     }
-  ];
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -90,11 +70,19 @@ const InvoiceManager = () => {
   };
 
   const filteredInvoices = invoices.filter(invoice => {
-    const matchesSearch = invoice.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         invoice.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = invoice.clients?.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         invoice.invoice_number.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-6 animate-fade-in">
+        <div className="text-center">Loading invoices...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6 animate-fade-in">
@@ -137,10 +125,6 @@ const InvoiceManager = () => {
                 <option value="paid">Paid</option>
                 <option value="overdue">Overdue</option>
               </select>
-              <Button variant="outline" size="sm">
-                <Filter className="w-4 h-4 mr-2" />
-                More Filters
-              </Button>
             </div>
           </div>
         </CardContent>
@@ -170,11 +154,11 @@ const InvoiceManager = () => {
               <tbody>
                 {filteredInvoices.map((invoice) => (
                   <tr key={invoice.id} className="border-b border-steel-100 hover:bg-steel-50">
-                    <td className="py-3 px-4 font-medium text-gray-900">{invoice.id}</td>
-                    <td className="py-3 px-4 text-steel-700">{invoice.client}</td>
-                    <td className="py-3 px-4 font-medium text-gray-900">{formatCurrency(invoice.amount)}</td>
-                    <td className="py-3 px-4 text-steel-700">{formatDate(invoice.issueDate)}</td>
-                    <td className="py-3 px-4 text-steel-700">{formatDate(invoice.dueDate)}</td>
+                    <td className="py-3 px-4 font-medium text-gray-900">{invoice.invoice_number}</td>
+                    <td className="py-3 px-4 text-steel-700">{invoice.clients?.company_name || 'Unknown Client'}</td>
+                    <td className="py-3 px-4 font-medium text-gray-900">{formatCurrency(invoice.total_amount)}</td>
+                    <td className="py-3 px-4 text-steel-700">{formatDate(invoice.issue_date)}</td>
+                    <td className="py-3 px-4 text-steel-700">{formatDate(invoice.due_date)}</td>
                     <td className="py-3 px-4">
                       <Badge className={getStatusColor(invoice.status)}>
                         {invoice.status}
@@ -188,11 +172,8 @@ const InvoiceManager = () => {
                         <Button variant="ghost" size="sm">
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
-                          <Download className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="w-4 h-4" />
+                        <Button variant="ghost" size="sm" onClick={() => handleDelete(invoice.id)}>
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </td>
