@@ -7,20 +7,33 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Plus, 
   Search, 
-  Filter, 
   Edit, 
   Trash2, 
   Eye, 
   Download,
-  MoreHorizontal,
   FileText
 } from 'lucide-react';
 import { useInvoices, useDeleteInvoice } from '@/hooks/useInvoices';
 import { useToast } from '@/hooks/use-toast';
+import InvoiceModal from '@/components/modals/InvoiceModal';
+import InvoiceView from '@/components/InvoiceView';
+import { Tables } from '@/integrations/supabase/types';
+
+type Invoice = Tables<'invoices'> & {
+  clients?: {
+    company_name: string;
+    contact_name: string;
+    email: string;
+    address?: string;
+  };
+};
 
 const InvoiceManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | undefined>();
+  const [viewInvoice, setViewInvoice] = useState<Invoice | null>(null);
 
   const { data: invoices = [], isLoading } = useInvoices();
   const deleteInvoice = useDeleteInvoice();
@@ -42,6 +55,25 @@ const InvoiceManager = () => {
         });
       }
     }
+  };
+
+  const handleNewInvoice = () => {
+    setSelectedInvoice(undefined);
+    setIsModalOpen(true);
+  };
+
+  const handleEditInvoice = (invoice: Invoice) => {
+    setSelectedInvoice(invoice);
+    setIsModalOpen(true);
+  };
+
+  const handleViewInvoice = (invoice: Invoice) => {
+    setViewInvoice(invoice);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedInvoice(undefined);
   };
 
   const formatCurrency = (amount: number) => {
@@ -76,6 +108,20 @@ const InvoiceManager = () => {
     return matchesSearch && matchesStatus;
   });
 
+  if (viewInvoice) {
+    return (
+      <InvoiceView
+        invoice={viewInvoice}
+        onBack={() => setViewInvoice(null)}
+        onEdit={() => {
+          setSelectedInvoice(viewInvoice);
+          setViewInvoice(null);
+          setIsModalOpen(true);
+        }}
+      />
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="p-6 space-y-6 animate-fade-in">
@@ -92,7 +138,7 @@ const InvoiceManager = () => {
           <h1 className="text-3xl font-bold text-gray-900">Invoice Management</h1>
           <p className="text-steel-600 mt-1">Create, manage, and track your invoices</p>
         </div>
-        <Button className="steel-button">
+        <Button className="steel-button" onClick={handleNewInvoice}>
           <Plus className="w-4 h-4 mr-2" />
           New Invoice
         </Button>
@@ -166,10 +212,10 @@ const InvoiceManager = () => {
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => handleViewInvoice(invoice)}>
                           <Eye className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => handleEditInvoice(invoice)}>
                           <Edit className="w-4 h-4" />
                         </Button>
                         <Button variant="ghost" size="sm" onClick={() => handleDelete(invoice.id)}>
@@ -190,7 +236,7 @@ const InvoiceManager = () => {
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-1">No invoices found</h3>
               <p className="text-steel-600">Try adjusting your search criteria or create a new invoice.</p>
-              <Button className="mt-4 steel-button">
+              <Button className="mt-4 steel-button" onClick={handleNewInvoice}>
                 <Plus className="w-4 h-4 mr-2" />
                 Create First Invoice
               </Button>
@@ -198,6 +244,12 @@ const InvoiceManager = () => {
           )}
         </CardContent>
       </Card>
+
+      <InvoiceModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        invoice={selectedInvoice}
+      />
     </div>
   );
 };

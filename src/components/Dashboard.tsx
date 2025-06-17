@@ -6,7 +6,11 @@ import { Plus, TrendingUp, FileText, Users, DollarSign, AlertCircle } from 'luci
 import { useInvoices } from '@/hooks/useInvoices';
 import { useClients } from '@/hooks/useClients';
 
-const Dashboard = () => {
+interface DashboardProps {
+  onNavigate: (tab: string) => void;
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const { data: invoices = [] } = useInvoices();
   const { data: clients = [] } = useClients();
 
@@ -51,6 +55,46 @@ const Dashboard = () => {
     }
   };
 
+  const handleGenerateReport = () => {
+    // Generate a simple CSV report
+    const csvContent = [
+      ['Invoice Number', 'Client', 'Amount', 'Status', 'Issue Date'],
+      ...invoices.map(invoice => [
+        invoice.invoice_number,
+        invoice.clients?.company_name || 'Unknown',
+        invoice.total_amount,
+        invoice.status,
+        invoice.issue_date
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `invoice-report-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handlePaymentReminders = () => {
+    const overdueInvoicesList = invoices.filter(invoice => {
+      const dueDate = new Date(invoice.due_date);
+      const today = new Date();
+      return invoice.status === 'pending' && dueDate < today;
+    });
+
+    if (overdueInvoicesList.length === 0) {
+      alert('No overdue invoices found!');
+    } else {
+      const reminderText = overdueInvoicesList.map(invoice => 
+        `Invoice ${invoice.invoice_number} - ${invoice.clients?.company_name} - ${formatCurrency(invoice.total_amount)}`
+      ).join('\n');
+      
+      alert(`Payment Reminders Needed:\n\n${reminderText}`);
+    }
+  };
+
   return (
     <div className="p-6 space-y-6 animate-fade-in">
       {/* Header */}
@@ -60,11 +104,11 @@ const Dashboard = () => {
           <p className="text-steel-600 mt-1">Welcome back! Here's what's happening with your business.</p>
         </div>
         <div className="flex gap-3">
-          <Button className="steel-button">
+          <Button className="steel-button" onClick={() => onNavigate('invoices')}>
             <Plus className="w-4 h-4 mr-2" />
             New Invoice
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => onNavigate('clients')}>
             <Users className="w-4 h-4 mr-2" />
             New Client
           </Button>
@@ -141,7 +185,12 @@ const Dashboard = () => {
                   Please follow up on overdue payments to maintain cash flow.
                 </p>
               </div>
-              <Button variant="outline" size="sm" className="ml-auto">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="ml-auto"
+                onClick={() => onNavigate('invoices')}
+              >
                 View Overdue
               </Button>
             </div>
@@ -176,7 +225,7 @@ const Dashboard = () => {
                 ))
               )}
             </div>
-            <Button variant="outline" className="w-full mt-4">
+            <Button variant="outline" className="w-full mt-4" onClick={() => onNavigate('invoices')}>
               View All Invoices
             </Button>
           </CardContent>
@@ -187,19 +236,19 @@ const Dashboard = () => {
             <CardTitle className="text-lg font-semibold text-gray-900">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button className="w-full justify-start steel-button">
+            <Button className="w-full justify-start steel-button" onClick={() => onNavigate('invoices')}>
               <Plus className="w-4 h-4 mr-2" />
               Create New Invoice
             </Button>
-            <Button variant="outline" className="w-full justify-start">
+            <Button variant="outline" className="w-full justify-start" onClick={() => onNavigate('clients')}>
               <Users className="w-4 h-4 mr-2" />
               Add New Client
             </Button>
-            <Button variant="outline" className="w-full justify-start">
+            <Button variant="outline" className="w-full justify-start" onClick={handleGenerateReport}>
               <FileText className="w-4 h-4 mr-2" />
               Generate Report
             </Button>
-            <Button variant="outline" className="w-full justify-start">
+            <Button variant="outline" className="w-full justify-start" onClick={handlePaymentReminders}>
               <DollarSign className="w-4 h-4 mr-2" />
               Payment Reminders
             </Button>
