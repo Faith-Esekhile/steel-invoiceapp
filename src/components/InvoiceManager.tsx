@@ -12,7 +12,8 @@ import {
   Trash2, 
   Eye, 
   Download,
-  MoreHorizontal
+  MoreHorizontal,
+  FileText
 } from 'lucide-react';
 
 const InvoiceManager = () => {
