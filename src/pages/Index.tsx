@@ -1,13 +1,15 @@
 
 import React, { useState } from 'react';
-import Navigation from '../components/Navigation';
-import Dashboard from '../components/Dashboard';
-import InvoiceManager from '../components/InvoiceManager';
-import ClientManager from '../components/ClientManager';
-import DatabaseManager from '../components/DatabaseManager';
-import Settings from '../components/Settings';
+import { AuthProvider } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import Navigation from '@/components/Navigation';
+import Dashboard from '@/components/Dashboard';
+import InvoiceManager from '@/components/InvoiceManager';
+import ClientManager from '@/components/ClientManager';
+import DatabaseManager from '@/components/DatabaseManager';
+import Settings from '@/components/Settings';
 
-const Index = () => {
+const AppContent = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
   const renderContent = () => {
@@ -36,6 +38,16 @@ const Index = () => {
         </main>
       </div>
     </div>
+  );
+};
+
+const Index = () => {
+  return (
+    <AuthProvider>
+      <ProtectedRoute>
+        <AppContent />
+      </ProtectedRoute>
+    </AuthProvider>
   );
 };
 

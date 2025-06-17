@@ -12,6 +12,7 @@ import {
   LogOut,
   User
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface NavigationProps {
   activeTab: string;
@@ -20,6 +21,7 @@ interface NavigationProps {
 
 const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { signOut, user } = useAuth();
 
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -32,6 +34,10 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
   const handleNavClick = (tabId: string) => {
     setActiveTab(tabId);
     setIsSidebarOpen(false);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
   };
 
   return (
@@ -60,11 +66,14 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
           </div>
           
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm">
+            <span className="text-sm text-steel-600 hidden md:block">
+              {user?.email}
+            </span>
+            <Button variant="ghost" size="sm" onClick={() => setActiveTab('settings')}>
               <User className="h-4 w-4 mr-2" />
               Profile
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4 mr-2" />
               Logout
             </Button>
