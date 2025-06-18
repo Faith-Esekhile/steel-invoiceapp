@@ -11,50 +11,52 @@ import {
   Trash2, 
   Package
 } from 'lucide-react';
+import { useInventory, useCreateInventoryItem, useUpdateInventoryItem, useDeleteInventoryItem } from '@/hooks/useInventory';
+import { useToast } from '@/hooks/use-toast';
+import InventoryModal from '@/components/modals/InventoryModal';
+import { Tables } from '@/integrations/supabase/types';
 
-interface InventoryItem {
-  id: string;
-  name: string;
-  description: string;
-  quantity: number;
-  unit_price: number;
-  category: string;
-  status: 'in_stock' | 'low_stock' | 'out_of_stock';
-}
+type InventoryItem = Tables<'inventory'>;
 
 const Inventory = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | undefined>();
   
-  // Sample inventory data
-  const [items, setItems] = useState<InventoryItem[]>([
-    {
-      id: '1',
-      name: 'Steel Bars',
-      description: 'High-grade steel bars for construction',
-      quantity: 500,
-      unit_price: 2500,
-      category: 'Raw Materials',
-      status: 'in_stock'
-    },
-    {
-      id: '2',
-      name: 'Steel Plates',
-      description: 'Heavy duty steel plates',
-      quantity: 15,
-      unit_price: 15000,
-      category: 'Raw Materials',
-      status: 'low_stock'
-    },
-    {
-      id: '3',
-      name: 'Welding Rods',
-      description: 'Professional welding rods',
-      quantity: 0,
-      unit_price: 1200,
-      category: 'Tools',
-      status: 'out_of_stock'
+  const { data: items = [], isLoading, error } = useInventory();
+  const createItem = useCreateInventoryItem();
+  const updateItem = useUpdateInventoryItem();
+  const deleteItem = useDeleteInventoryItem();
+  const { toast } = useToast();
+
+  const handleDelete = async (itemId: string) => {
+    if (confirm('Are you sure you want to delete this item?')) {
+      try {
+        await deleteItem.mutateAsync(itemId);
+        toast({
+          title: "Success",
+          description: "Item deleted successfully",
+        });
+      } catch (error) {
+        console.error('Delete error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete item",
+          variant: "destructive",
+        });
+      }
     }
-  ]);
+  };
+
+  const handleNewItem = () => {
+    setSelectedItem(undefined);
+    setIsModalOpen(true);
+  };
+
+  const handleEditItem = (item: InventoryItem) => {
+    setSelectedItem(item);
+    setIsModalOpen(true);
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -74,8 +76,29 @@ const Inventory = () => {
 
   const filteredItems = items.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.description.toLowerCase().includes(searchTerm.toLowerCase())
+    (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-6 animate-fade-in">
+        <div className="text-center py-8">
+          <div className="text-lg">Loading inventory...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 space-y-6 animate-fade-in">
+        <div className="text-center py-8">
+          <div className="text-red-600 text-lg">Error loading inventory</div>
+          <p className="text-gray-600 mt-2">Please check your connection and try again</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6 animate-fade-in">
@@ -85,7 +108,7 @@ const Inventory = () => {
           <h1 className="text-3xl font-bold text-gray-900">Inventory Management</h1>
           <p className="text-gray-600 mt-1">Track and manage your inventory items</p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+        <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleNewItem}>
           <Plus className="w-4 h-4 mr-2" />
           Add New Item
         </Button>
@@ -126,6 +149,10 @@ const Inventory = () => {
                   : 'Start by adding your first inventory item.'
                 }
               </p>
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleNewItem}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add First Item
+              </Button>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -146,24 +173,34 @@ const Inventory = () => {
                   {filteredItems.map((item) => (
                     <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-3 px-4 font-medium text-gray-900">{item.name}</td>
-                      <td className="py-3 px-4 text-gray-700">{item.description}</td>
-                      <td className="py-3 px-4 text-gray-700">{item.category}</td>
+                      <td className="py-3 px-4 text-gray-700">{item.description || '-'}</td>
+                      <td className="py-3 px-4 text-gray-700">{item.category || '-'}</td>
                       <td className="py-3 px-4 text-right font-medium text-gray-900">{item.quantity}</td>
                       <td className="py-3 px-4 text-right font-medium text-gray-900">{formatCurrency(item.unit_price)}</td>
                       <td className="py-3 px-4 text-right font-medium text-gray-900">
                         {formatCurrency(item.quantity * item.unit_price)}
                       </td>
                       <td className="py-3 px-4">
-                        <Badge className={getStatusColor(item.status)}>
-                          {item.status.replace('_', ' ')}
+                        <Badge className={getStatusColor(item.status || 'in_stock')}>
+                          {(item.status || 'in_stock').replace('_', ' ')}
                         </Badge>
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-700">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleEditItem(item)}
+                            className="text-gray-600 hover:text-gray-700"
+                          >
                             <Edit className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleDelete(item.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
@@ -239,6 +276,12 @@ const Inventory = () => {
           </CardContent>
         </Card>
       </div>
+
+      <InventoryModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        item={selectedItem}
+      />
     </div>
   );
 };

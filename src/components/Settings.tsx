@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,24 +11,29 @@ import {
   Save
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useCompanyInfo, useUpdateCompanyInfo } from '@/hooks/useCompanyInfo';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Settings = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { data: companyInfo, isLoading } = useCompanyInfo();
+  const updateCompanyInfo = useUpdateCompanyInfo();
   
   const [userProfile, setUserProfile] = useState({
     firstName: 'Admin',
     lastName: 'User',
-    email: 'admin@marvellous-steel.com',
+    email: user?.email || 'admin@marvellous-steel.com',
     phone: '+234 (0) 123-456-7890'
   });
 
   const [companySettings, setCompanySettings] = useState({
-    companyName: 'Marvellous Steel Enterprise',
+    company_name: 'Marvellous Steel Enterprise',
     address: '123 Steel Avenue, Industrial District',
-    city: 'Lagos',
-    state: 'Lagos State',
-    zipCode: '100001',
-    taxId: 'TAX123456789'
+    phone: '+234 (0) 123-456-7890',
+    email: 'info@marvellous-steel.com',
+    website: 'www.marvellous-steel.com',
+    tax_id: 'TAX123456789'
   });
 
   const [invoiceSettings, setInvoiceSettings] = useState({
@@ -39,6 +44,20 @@ const Settings = () => {
     reminderDays: '7'
   });
 
+  // Load company info when it's available
+  useEffect(() => {
+    if (companyInfo) {
+      setCompanySettings({
+        company_name: companyInfo.company_name || 'Marvellous Steel Enterprise',
+        address: companyInfo.address || '123 Steel Avenue, Industrial District',
+        phone: companyInfo.phone || '+234 (0) 123-456-7890',
+        email: companyInfo.email || 'info@marvellous-steel.com',
+        website: companyInfo.website || 'www.marvellous-steel.com',
+        tax_id: companyInfo.tax_id || 'TAX123456789'
+      });
+    }
+  }, [companyInfo]);
+
   const handleSaveProfile = () => {
     console.log('Saving user profile:', userProfile);
     toast({
@@ -47,12 +66,28 @@ const Settings = () => {
     });
   };
 
-  const handleSaveCompany = () => {
-    console.log('Saving company settings:', companySettings);
-    toast({
-      title: "Success",
-      description: "Company settings saved successfully",
-    });
+  const handleSaveCompany = async () => {
+    try {
+      await updateCompanyInfo.mutateAsync({
+        company_name: companySettings.company_name,
+        address: companySettings.address,
+        phone: companySettings.phone,
+        email: companySettings.email,
+        website: companySettings.website,
+        tax_id: companySettings.tax_id,
+      });
+      toast({
+        title: "Success",
+        description: "Company settings saved successfully",
+      });
+    } catch (error) {
+      console.error('Save error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save company settings",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSaveInvoice = () => {
@@ -62,6 +97,16 @@ const Settings = () => {
       description: "Invoice settings saved successfully",
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-6 animate-fade-in">
+        <div className="text-center py-8">
+          <div className="text-lg">Loading settings...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6 animate-fade-in">
@@ -136,8 +181,8 @@ const Settings = () => {
               <Label htmlFor="companyName">Company Name</Label>
               <Input
                 id="companyName"
-                value={companySettings.companyName}
-                onChange={(e) => setCompanySettings({...companySettings, companyName: e.target.value})}
+                value={companySettings.company_name}
+                onChange={(e) => setCompanySettings({...companySettings, company_name: e.target.value})}
               />
             </div>
             <div>
@@ -148,43 +193,50 @@ const Settings = () => {
                 onChange={(e) => setCompanySettings({...companySettings, address: e.target.value})}
               />
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="city">City</Label>
+                <Label htmlFor="companyPhone">Phone</Label>
                 <Input
-                  id="city"
-                  value={companySettings.city}
-                  onChange={(e) => setCompanySettings({...companySettings, city: e.target.value})}
+                  id="companyPhone"
+                  value={companySettings.phone}
+                  onChange={(e) => setCompanySettings({...companySettings, phone: e.target.value})}
                 />
               </div>
               <div>
-                <Label htmlFor="state">State</Label>
+                <Label htmlFor="companyEmail">Email</Label>
                 <Input
-                  id="state"
-                  value={companySettings.state}
-                  onChange={(e) => setCompanySettings({...companySettings, state: e.target.value})}
-                />
-              </div>
-              <div>
-                <Label htmlFor="zipCode">ZIP Code</Label>
-                <Input
-                  id="zipCode"
-                  value={companySettings.zipCode}
-                  onChange={(e) => setCompanySettings({...companySettings, zipCode: e.target.value})}
+                  id="companyEmail"
+                  type="email"
+                  value={companySettings.email}
+                  onChange={(e) => setCompanySettings({...companySettings, email: e.target.value})}
                 />
               </div>
             </div>
-            <div>
-              <Label htmlFor="taxId">Tax ID</Label>
-              <Input
-                id="taxId"
-                value={companySettings.taxId}
-                onChange={(e) => setCompanySettings({...companySettings, taxId: e.target.value})}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="website">Website</Label>
+                <Input
+                  id="website"
+                  value={companySettings.website}
+                  onChange={(e) => setCompanySettings({...companySettings, website: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label htmlFor="taxId">Tax ID</Label>
+                <Input
+                  id="taxId"
+                  value={companySettings.tax_id}
+                  onChange={(e) => setCompanySettings({...companySettings, tax_id: e.target.value})}
+                />
+              </div>
             </div>
-            <Button onClick={handleSaveCompany} className="steel-button">
+            <Button 
+              onClick={handleSaveCompany} 
+              className="steel-button"
+              disabled={updateCompanyInfo.isPending}
+            >
               <Save className="w-4 h-4 mr-2" />
-              Save Company Info
+              {updateCompanyInfo.isPending ? 'Saving...' : 'Save Company Info'}
             </Button>
           </CardContent>
         </Card>
