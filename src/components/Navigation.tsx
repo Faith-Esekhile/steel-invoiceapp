@@ -5,7 +5,7 @@ import {
   LayoutDashboard, 
   FileText, 
   Users, 
-  Database, 
+  Package,
   Settings, 
   Menu, 
   X,
@@ -27,7 +27,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'invoices', label: 'Invoices', icon: FileText },
     { id: 'clients', label: 'Clients', icon: Users },
-    { id: 'database', label: 'Database Manager', icon: Database },
+    { id: 'inventory', label: 'Inventory', icon: Package },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 

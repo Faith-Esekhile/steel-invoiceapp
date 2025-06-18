@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,9 +23,9 @@ interface InvoiceViewProps {
 
 const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) => {
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-NG', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'NGN'
     }).format(amount);
   };
 
@@ -157,18 +156,10 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
             </table>
           </div>
 
-          {/* Totals */}
+          {/* Totals - Removed tax */}
           <div className="flex justify-end">
             <div className="w-1/3">
               <div className="space-y-2">
-                <div className="flex justify-between py-2">
-                  <span className="text-steel-700">Subtotal:</span>
-                  <span className="font-medium">{formatCurrency(invoice.subtotal)}</span>
-                </div>
-                <div className="flex justify-between py-2">
-                  <span className="text-steel-700">Tax:</span>
-                  <span className="font-medium">{formatCurrency(invoice.tax_amount)}</span>
-                </div>
                 <div className="flex justify-between py-3 border-t-2 border-steel-200">
                   <span className="text-lg font-bold text-gray-900">Total:</span>
                   <span className="text-lg font-bold text-gray-900">{formatCurrency(invoice.total_amount)}</span>

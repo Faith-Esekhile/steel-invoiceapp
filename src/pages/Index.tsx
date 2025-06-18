@@ -6,7 +6,7 @@ import Navigation from '@/components/Navigation';
 import Dashboard from '@/components/Dashboard';
 import InvoiceManager from '@/components/InvoiceManager';
 import ClientManager from '@/components/ClientManager';
-import DatabaseManager from '@/components/DatabaseManager';
+import Inventory from '@/components/Inventory';
 import Settings from '@/components/Settings';
 
 const AppContent = () => {
@@ -20,8 +20,8 @@ const AppContent = () => {
         return <InvoiceManager />;
       case 'clients':
         return <ClientManager />;
-      case 'database':
-        return <DatabaseManager />;
+      case 'inventory':
+        return <Inventory />;
       case 'settings':
         return <Settings />;
       default:

@@ -81,9 +81,8 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
 
   const calculateTotals = () => {
     const subtotal = items.reduce((sum, item) => sum + item.line_total, 0);
-    const tax_amount = subtotal * 0.1; // 10% tax
-    const total_amount = subtotal + tax_amount;
-    return { subtotal, tax_amount, total_amount };
+    const total_amount = subtotal; // No tax
+    return { subtotal, tax_amount: 0, total_amount };
   };
 
   const addItem = () => {
@@ -106,6 +105,13 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
     }
     
     setItems(newItems);
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN'
+    }).format(amount);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -167,7 +173,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
     }
   };
 
-  const { subtotal, tax_amount, total_amount } = calculateTotals();
+  const { subtotal, total_amount } = calculateTotals();
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -292,7 +298,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
                   <div className="col-span-2">
                     <Label className="text-sm">Total</Label>
                     <Input
-                      value={`$${item.line_total.toFixed(2)}`}
+                      value={formatCurrency(item.line_total)}
                       readOnly
                       className="bg-gray-50 mt-1"
                     />
@@ -318,15 +324,11 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
             <div className="space-y-2 text-right">
               <div className="flex justify-between text-sm">
                 <span className="font-medium">Subtotal:</span>
-                <span>${subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="font-medium">Tax (10%):</span>
-                <span>${tax_amount.toFixed(2)}</span>
+                <span>{formatCurrency(subtotal)}</span>
               </div>
               <div className="flex justify-between font-bold text-lg border-t pt-2">
                 <span>Total:</span>
-                <span>${total_amount.toFixed(2)}</span>
+                <span>{formatCurrency(total_amount)}</span>
               </div>
             </div>
           </div>
