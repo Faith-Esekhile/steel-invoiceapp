@@ -42,40 +42,31 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
 
   return (
     <>
-      {/* Header */}
-      <header className="bg-white border-b border-steel-200 sticky top-0 z-50">
-        <div className="flex items-center justify-between px-6 py-4">
+      {/* Header - only shows on mobile */}
+      <header className="bg-white border-b border-steel-200 sticky top-0 z-50 lg:hidden">
+        <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center">
             <Button 
               variant="ghost" 
               size="sm"
-              className="lg:hidden mr-2"
+              className="mr-2"
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-primary-600 rounded-md flex items-center justify-center">
-                <span className="text-white font-bold text-sm">MS</span>
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 bg-primary-600 rounded-md flex items-center justify-center">
+                <span className="text-white font-bold text-xs">MS</span>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Marvellous Steel</h1>
-                <p className="text-xs text-steel-600">Enterprise Solutions</p>
+                <h1 className="text-lg font-bold text-gray-900">Marvellous Steel</h1>
               </div>
             </div>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-steel-600 hidden md:block">
-              {user?.email}
-            </span>
-            <Button variant="ghost" size="sm" onClick={() => setActiveTab('settings')}>
-              <User className="h-4 w-4 mr-2" />
-              Profile
-            </Button>
+          <div className="flex items-center space-x-2">
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
+              <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -91,11 +82,25 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
 
       {/* Sidebar */}
       <div className={`
-        fixed left-0 top-0 h-full w-64 bg-white border-r border-steel-200 z-50 transform transition-transform duration-300
+        fixed left-0 top-0 h-full w-64 bg-white border-r border-steel-200 z-50 transform transition-transform duration-300 flex flex-col
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0 lg:static lg:z-auto
       `}>
-        <div className="p-6 border-b border-steel-200 lg:hidden">
+        {/* Desktop Header */}
+        <div className="p-4 border-b border-steel-200 hidden lg:block">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-primary-600 rounded-md flex items-center justify-center">
+              <span className="text-white font-bold text-sm">MS</span>
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">Marvellous Steel</h1>
+              <p className="text-xs text-steel-600">Enterprise Solutions</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Header */}
+        <div className="p-4 border-b border-steel-200 lg:hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-primary-600 rounded-md flex items-center justify-center">
@@ -116,7 +121,8 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
           </div>
         </div>
         
-        <nav className="p-4 space-y-2">
+        {/* Navigation Menu */}
+        <nav className="p-3 space-y-1 flex-1">
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -138,10 +144,20 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
             );
           })}
         </nav>
-      </div>
 
-      {/* Spacer for fixed sidebar on large screens */}
-      <div className="hidden lg:block lg:w-64"></div>
+        {/* Footer - User info and logout */}
+        <div className="p-3 border-t border-steel-200 hidden lg:block">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <User className="h-4 w-4 text-steel-600" />
+              <span className="text-sm text-steel-600 truncate">{user?.email}</span>
+            </div>
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
     </>
   );
 };

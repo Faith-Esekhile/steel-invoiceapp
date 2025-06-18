@@ -30,13 +30,11 @@ const AppContent = () => {
   };
 
   return (
-    <div className="min-h-screen bg-steel-50">
-      <div className="flex">
-        <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
-        <main className="flex-1 lg:ml-0">
-          {renderContent()}
-        </main>
-      </div>
+    <div className="min-h-screen bg-steel-50 flex">
+      <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
+      <main className="flex-1">
+        {renderContent()}
+      </main>
     </div>
   );
 };
