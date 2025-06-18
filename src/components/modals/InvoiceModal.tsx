@@ -39,7 +39,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
   });
 
   const [items, setItems] = useState<InvoiceItem[]>([
-    { description: '', quantity: 1, unit_price: 0, line_total: 0 }
+    { description: 'Steel fabrication services', quantity: 1, unit_price: 1000, line_total: 1000 }
   ]);
 
   const { data: clients = [] } = useClients();
@@ -48,27 +48,34 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
   const { toast } = useToast();
 
   useEffect(() => {
-    if (invoice) {
-      setFormData({
-        invoice_number: invoice.invoice_number,
-        client_id: invoice.client_id,
-        issue_date: invoice.issue_date,
-        due_date: invoice.due_date,
-        notes: invoice.notes || '',
-        status: invoice.status as InvoiceStatus,
-      });
-    } else {
-      // Generate invoice number
-      const invoiceNumber = `INV-${Date.now().toString().slice(-6)}`;
-      setFormData({
-        invoice_number: invoiceNumber,
-        client_id: '',
-        issue_date: new Date().toISOString().split('T')[0],
-        due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        notes: '',
-        status: 'draft',
-      });
-      setItems([{ description: '', quantity: 1, unit_price: 0, line_total: 0 }]);
+    if (isOpen) {
+      if (invoice) {
+        setFormData({
+          invoice_number: invoice.invoice_number,
+          client_id: invoice.client_id,
+          issue_date: invoice.issue_date,
+          due_date: invoice.due_date,
+          notes: invoice.notes || '',
+          status: invoice.status as InvoiceStatus,
+        });
+        // For existing invoices, use actual data or default item
+        setItems([{ description: 'Steel fabrication services', quantity: 1, unit_price: invoice.subtotal, line_total: invoice.subtotal }]);
+      } else {
+        // Generate invoice number
+        const invoiceNumber = `INV-${Date.now().toString().slice(-6)}`;
+        const today = new Date().toISOString().split('T')[0];
+        const dueDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        
+        setFormData({
+          invoice_number: invoiceNumber,
+          client_id: '',
+          issue_date: today,
+          due_date: dueDate,
+          notes: '',
+          status: 'draft',
+        });
+        setItems([{ description: 'Steel fabrication services', quantity: 1, unit_price: 1000, line_total: 1000 }]);
+      }
     }
   }, [invoice, isOpen]);
 
@@ -113,6 +120,15 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
       return;
     }
 
+    if (!formData.invoice_number.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter an invoice number",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const { subtotal, tax_amount, total_amount } = calculateTotals();
     
     try {
@@ -142,9 +158,10 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
       }
       onClose();
     } catch (error) {
+      console.error('Invoice save error:', error);
       toast({
         title: "Error",
-        description: "Something went wrong. Please try again.",
+        description: "Failed to save invoice. Please try again.",
         variant: "destructive",
       });
     }
@@ -156,24 +173,27 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{invoice ? 'Edit Invoice' : 'Create New Invoice'}</DialogTitle>
+          <DialogTitle className="text-xl font-bold">
+            {invoice ? 'Edit Invoice' : 'Create New Invoice'}
+          </DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="invoice_number">Invoice Number</Label>
+              <Label htmlFor="invoice_number" className="text-sm font-medium">Invoice Number *</Label>
               <Input
                 id="invoice_number"
                 value={formData.invoice_number}
                 onChange={(e) => setFormData(prev => ({ ...prev, invoice_number: e.target.value }))}
                 required
+                className="mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="client_id">Client</Label>
+              <Label htmlFor="client_id" className="text-sm font-medium">Client *</Label>
               <Select value={formData.client_id} onValueChange={(value) => setFormData(prev => ({ ...prev, client_id: value }))}>
-                <SelectTrigger>
+                <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Select a client" />
                 </SelectTrigger>
                 <SelectContent>
@@ -187,33 +207,35 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="issue_date">Issue Date</Label>
+              <Label htmlFor="issue_date" className="text-sm font-medium">Issue Date *</Label>
               <Input
                 id="issue_date"
                 type="date"
                 value={formData.issue_date}
                 onChange={(e) => setFormData(prev => ({ ...prev, issue_date: e.target.value }))}
                 required
+                className="mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="due_date">Due Date</Label>
+              <Label htmlFor="due_date" className="text-sm font-medium">Due Date *</Label>
               <Input
                 id="due_date"
                 type="date"
                 value={formData.due_date}
                 onChange={(e) => setFormData(prev => ({ ...prev, due_date: e.target.value }))}
                 required
+                className="mt-1"
               />
             </div>
           </div>
 
           <div>
-            <Label htmlFor="status">Status</Label>
+            <Label htmlFor="status" className="text-sm font-medium">Status</Label>
             <Select value={formData.status} onValueChange={(value: InvoiceStatus) => setFormData(prev => ({ ...prev, status: value }))}>
-              <SelectTrigger>
+              <SelectTrigger className="mt-1">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -227,8 +249,8 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
 
           <div>
             <div className="flex justify-between items-center mb-4">
-              <Label>Invoice Items</Label>
-              <Button type="button" onClick={addItem} size="sm">
+              <Label className="text-sm font-medium">Invoice Items</Label>
+              <Button type="button" onClick={addItem} size="sm" variant="outline">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Item
               </Button>
@@ -236,40 +258,43 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
             
             <div className="space-y-3">
               {items.map((item, index) => (
-                <div key={index} className="grid grid-cols-12 gap-3 items-end">
+                <div key={index} className="grid grid-cols-12 gap-3 items-end p-3 border rounded-lg">
                   <div className="col-span-5">
-                    <Label>Description</Label>
+                    <Label className="text-sm">Description</Label>
                     <Input
                       value={item.description}
                       onChange={(e) => updateItem(index, 'description', e.target.value)}
                       placeholder="Item description"
+                      className="mt-1"
                     />
                   </div>
                   <div className="col-span-2">
-                    <Label>Quantity</Label>
+                    <Label className="text-sm">Quantity</Label>
                     <Input
                       type="number"
                       value={item.quantity}
-                      onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 0)}
+                      onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 1)}
                       min="1"
+                      className="mt-1"
                     />
                   </div>
                   <div className="col-span-2">
-                    <Label>Unit Price</Label>
+                    <Label className="text-sm">Unit Price</Label>
                     <Input
                       type="number"
                       step="0.01"
                       value={item.unit_price}
                       onChange={(e) => updateItem(index, 'unit_price', parseFloat(e.target.value) || 0)}
                       min="0"
+                      className="mt-1"
                     />
                   </div>
                   <div className="col-span-2">
-                    <Label>Total</Label>
+                    <Label className="text-sm">Total</Label>
                     <Input
-                      value={item.line_total.toFixed(2)}
+                      value={`$${item.line_total.toFixed(2)}`}
                       readOnly
-                      className="bg-gray-50"
+                      className="bg-gray-50 mt-1"
                     />
                   </div>
                   <div className="col-span-1">
@@ -279,6 +304,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
                       size="sm"
                       onClick={() => removeItem(index)}
                       disabled={items.length === 1}
+                      className="text-red-600 hover:text-red-700"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -288,17 +314,17 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
             </div>
           </div>
 
-          <div className="bg-gray-50 p-4 rounded-lg">
+          <div className="bg-blue-50 p-4 rounded-lg border">
             <div className="space-y-2 text-right">
-              <div className="flex justify-between">
-                <span>Subtotal:</span>
+              <div className="flex justify-between text-sm">
+                <span className="font-medium">Subtotal:</span>
                 <span>${subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Tax (10%):</span>
+              <div className="flex justify-between text-sm">
+                <span className="font-medium">Tax (10%):</span>
                 <span>${tax_amount.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between font-bold text-lg">
+              <div className="flex justify-between font-bold text-lg border-t pt-2">
                 <span>Total:</span>
                 <span>${total_amount.toFixed(2)}</span>
               </div>
@@ -306,25 +332,30 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
           </div>
 
           <div>
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes" className="text-sm font-medium">Notes</Label>
             <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-              placeholder="Additional notes..."
+              placeholder="Additional notes or terms..."
+              className="mt-1"
+              rows={3}
             />
           </div>
 
-          <div className="flex gap-2 pt-4">
+          <div className="flex gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={onClose} className="flex-1">
               Cancel
             </Button>
             <Button 
               type="submit" 
-              className="flex-1" 
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white" 
               disabled={createInvoice.isPending || updateInvoice.isPending}
             >
-              {createInvoice.isPending || updateInvoice.isPending ? 'Saving...' : 'Save Invoice'}
+              {createInvoice.isPending || updateInvoice.isPending ? 
+                'Saving...' : 
+                (invoice ? 'Update Invoice' : 'Create Invoice')
+              }
             </Button>
           </div>
         </form>

@@ -10,7 +10,6 @@ import {
   Edit, 
   Trash2, 
   Eye, 
-  Download,
   FileText
 } from 'lucide-react';
 import { useInvoices, useDeleteInvoice } from '@/hooks/useInvoices';
@@ -36,7 +35,7 @@ const InvoiceManager = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | undefined>();
   const [viewInvoice, setViewInvoice] = useState<Invoice | null>(null);
 
-  const { data: invoices = [], isLoading } = useInvoices();
+  const { data: invoices = [], isLoading, error } = useInvoices();
   const deleteInvoice = useDeleteInvoice();
   const { toast } = useToast();
 
@@ -49,6 +48,7 @@ const InvoiceManager = () => {
           description: "Invoice deleted successfully",
         });
       } catch (error) {
+        console.error('Delete error:', error);
         toast({
           title: "Error",
           description: "Failed to delete invoice",
@@ -59,20 +59,24 @@ const InvoiceManager = () => {
   };
 
   const handleNewInvoice = () => {
+    console.log('Opening new invoice modal');
     setSelectedInvoice(undefined);
     setIsModalOpen(true);
   };
 
   const handleEditInvoice = (invoice: Invoice) => {
+    console.log('Editing invoice:', invoice.id);
     setSelectedInvoice(invoice);
     setIsModalOpen(true);
   };
 
   const handleViewInvoice = (invoice: Invoice) => {
+    console.log('Viewing invoice:', invoice.id);
     setViewInvoice(invoice);
   };
 
   const handleCloseModal = () => {
+    console.log('Closing modal');
     setIsModalOpen(false);
     setSelectedInvoice(undefined);
   };
@@ -126,7 +130,20 @@ const InvoiceManager = () => {
   if (isLoading) {
     return (
       <div className="p-6 space-y-6 animate-fade-in">
-        <div className="text-center">Loading invoices...</div>
+        <div className="text-center py-8">
+          <div className="text-lg">Loading invoices...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 space-y-6 animate-fade-in">
+        <div className="text-center py-8">
+          <div className="text-red-600 text-lg">Error loading invoices</div>
+          <p className="text-gray-600 mt-2">Please check your connection and try again</p>
+        </div>
       </div>
     );
   }
@@ -137,21 +154,24 @@ const InvoiceManager = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Invoice Management</h1>
-          <p className="text-steel-600 mt-1">Create, manage, and track your invoices</p>
+          <p className="text-gray-600 mt-1">Create, manage, and track your invoices</p>
         </div>
-        <Button className="steel-button" onClick={handleNewInvoice}>
+        <Button 
+          className="bg-blue-600 hover:bg-blue-700 text-white" 
+          onClick={handleNewInvoice}
+        >
           <Plus className="w-4 h-4 mr-2" />
           New Invoice
         </Button>
       </div>
 
       {/* Filters */}
-      <Card className="steel-card">
+      <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-steel-400 h-4 w-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
                   placeholder="Search invoices..."
                   value={searchTerm}
@@ -164,7 +184,7 @@ const InvoiceManager = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-steel-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Status</option>
                 <option value="draft">Draft</option>
@@ -178,69 +198,92 @@ const InvoiceManager = () => {
       </Card>
 
       {/* Invoices Table */}
-      <Card className="steel-card">
+      <Card>
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-gray-900">
             Invoices ({filteredInvoices.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-steel-200">
-                  <th className="text-left py-3 px-4 font-medium text-steel-600">Invoice #</th>
-                  <th className="text-left py-3 px-4 font-medium text-steel-600">Client</th>
-                  <th className="text-left py-3 px-4 font-medium text-steel-600">Amount</th>
-                  <th className="text-left py-3 px-4 font-medium text-steel-600">Issue Date</th>
-                  <th className="text-left py-3 px-4 font-medium text-steel-600">Due Date</th>
-                  <th className="text-left py-3 px-4 font-medium text-steel-600">Status</th>
-                  <th className="text-left py-3 px-4 font-medium text-steel-600">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredInvoices.map((invoice) => (
-                  <tr key={invoice.id} className="border-b border-steel-100 hover:bg-steel-50">
-                    <td className="py-3 px-4 font-medium text-gray-900">{invoice.invoice_number}</td>
-                    <td className="py-3 px-4 text-steel-700">{invoice.clients?.company_name || 'Unknown Client'}</td>
-                    <td className="py-3 px-4 font-medium text-gray-900">{formatCurrency(invoice.total_amount)}</td>
-                    <td className="py-3 px-4 text-steel-700">{formatDate(invoice.issue_date)}</td>
-                    <td className="py-3 px-4 text-steel-700">{formatDate(invoice.due_date)}</td>
-                    <td className="py-3 px-4">
-                      <Badge className={getStatusColor(invoice.status)}>
-                        {invoice.status}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => handleViewInvoice(invoice)}>
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleEditInvoice(invoice)}>
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(invoice.id)}>
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          
-          {filteredInvoices.length === 0 && (
-            <div className="text-center py-8">
-              <div className="text-steel-400 mb-2">
-                <FileText className="w-12 h-12 mx-auto" />
+          {filteredInvoices.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-gray-400 mb-4">
+                <FileText className="w-16 h-16 mx-auto" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-1">No invoices found</h3>
-              <p className="text-steel-600">Try adjusting your search criteria or create a new invoice.</p>
-              <Button className="mt-4 steel-button" onClick={handleNewInvoice}>
+              <h3 className="text-xl font-medium text-gray-900 mb-2">No invoices found</h3>
+              <p className="text-gray-600 mb-6">
+                {searchTerm || statusFilter !== 'all' 
+                  ? 'Try adjusting your search criteria or create a new invoice.' 
+                  : 'Get started by creating your first invoice.'
+                }
+              </p>
+              <Button 
+                className="bg-blue-600 hover:bg-blue-700 text-white" 
+                onClick={handleNewInvoice}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Create First Invoice
               </Button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-4 font-medium text-gray-600">Invoice #</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-600">Client</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-600">Amount</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-600">Issue Date</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-600">Due Date</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-600">Status</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-600">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredInvoices.map((invoice) => (
+                    <tr key={invoice.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-3 px-4 font-medium text-gray-900">{invoice.invoice_number}</td>
+                      <td className="py-3 px-4 text-gray-700">{invoice.clients?.company_name || 'Unknown Client'}</td>
+                      <td className="py-3 px-4 font-medium text-gray-900">{formatCurrency(invoice.total_amount)}</td>
+                      <td className="py-3 px-4 text-gray-700">{formatDate(invoice.issue_date)}</td>
+                      <td className="py-3 px-4 text-gray-700">{formatDate(invoice.due_date)}</td>
+                      <td className="py-3 px-4">
+                        <Badge className={getStatusColor(invoice.status)}>
+                          {invoice.status}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleViewInvoice(invoice)}
+                            className="text-blue-600 hover:text-blue-700"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleEditInvoice(invoice)}
+                            className="text-gray-600 hover:text-gray-700"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => handleDelete(invoice.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </CardContent>
