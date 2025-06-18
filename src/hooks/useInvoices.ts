@@ -23,7 +23,9 @@ export const useInvoices = () => {
           clients (
             id,
             company_name,
-            contact_name
+            contact_name,
+            email,
+            address
           )
         `)
         .eq('user_id', user.id)

@@ -21,6 +21,7 @@ import { Tables } from '@/integrations/supabase/types';
 
 type Invoice = Tables<'invoices'> & {
   clients?: {
+    id: string;
     company_name: string;
     contact_name: string;
     email: string;

@@ -13,6 +13,7 @@ import { Tables } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
 
 type Invoice = Tables<'invoices'>;
+type InvoiceStatus = 'draft' | 'pending' | 'paid' | 'overdue';
 
 interface InvoiceItem {
   description: string;
@@ -34,7 +35,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
     issue_date: '',
     due_date: '',
     notes: '',
-    status: 'draft' as const,
+    status: 'draft' as InvoiceStatus,
   });
 
   const [items, setItems] = useState<InvoiceItem[]>([
@@ -54,7 +55,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
         issue_date: invoice.issue_date,
         due_date: invoice.due_date,
         notes: invoice.notes || '',
-        status: invoice.status as 'draft' | 'pending' | 'paid' | 'overdue',
+        status: invoice.status as InvoiceStatus,
       });
     } else {
       // Generate invoice number
@@ -211,7 +212,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
 
           <div>
             <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={(value: 'draft' | 'pending' | 'paid' | 'overdue') => setFormData(prev => ({ ...prev, status: value }))}>
+            <Select value={formData.status} onValueChange={(value: InvoiceStatus) => setFormData(prev => ({ ...prev, status: value }))}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
