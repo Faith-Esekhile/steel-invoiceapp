@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { useClients } from '@/hooks/useClients';
 import { useInventory } from '@/hooks/useInventory';
 import { useCreateInvoice, useUpdateInvoice } from '@/hooks/useInvoices';
+import { useCreateInvoiceItems, useUpdateInventoryQuantity } from '@/hooks/useInvoiceItems';
 import { useToast } from '@/hooks/use-toast';
 import { Tables } from '@/integrations/supabase/types';
 
@@ -32,6 +33,7 @@ interface InvoiceItem {
   quantity: number;
   unit_price: number;
   line_total: number;
+  inventory_id?: string;
 }
 
 interface InvoiceModalProps {
@@ -45,7 +47,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
     client_id: '',
     invoice_number: '',
     issue_date: new Date(),
-    due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+    due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     notes: '',
     status: 'draft' as 'draft' | 'pending' | 'paid' | 'overdue'
   });
@@ -58,6 +60,8 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
   const { data: inventory = [] } = useInventory();
   const createInvoice = useCreateInvoice();
   const updateInvoice = useUpdateInvoice();
+  const createInvoiceItems = useCreateInvoiceItems();
+  const updateInventoryQuantity = useUpdateInventoryQuantity();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -80,7 +84,6 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
         line_total: invoice.subtotal
       }]);
     } else {
-      // Generate invoice number for new invoices
       const invoiceCount = Date.now().toString().slice(-4);
       setFormData({
         client_id: '',
@@ -107,7 +110,6 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
       if (item.id === id) {
         const updatedItem = { ...item, [field]: value };
         
-        // Recalculate line total when quantity or unit_price changes
         if (field === 'quantity' || field === 'unit_price') {
           updatedItem.line_total = calculateItemTotal(
             field === 'quantity' ? Number(value) : updatedItem.quantity,
@@ -126,6 +128,13 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
     if (inventoryItem) {
       handleItemChange(itemId, 'description', inventoryItem.name);
       handleItemChange(itemId, 'unit_price', inventoryItem.unit_price);
+      
+      // Store inventory_id for quantity reduction
+      setItems(items.map(item => 
+        item.id === itemId 
+          ? { ...item, inventory_id: inventoryItemId }
+          : item
+      ));
     }
   };
 
@@ -155,24 +164,48 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
       issue_date: format(formData.issue_date, 'yyyy-MM-dd'),
       due_date: format(formData.due_date, 'yyyy-MM-dd'),
       subtotal: subtotal,
-      tax_amount: 0, // No tax as requested
+      tax_amount: 0,
       total_amount: subtotal
     };
 
     try {
+      let invoiceId: string;
+
       if (invoice) {
+        // Update existing invoice
         await updateInvoice.mutateAsync({ id: invoice.id, ...invoiceData });
-        toast({
-          title: "Success",
-          description: "Invoice updated successfully",
-        });
+        invoiceId = invoice.id;
       } else {
-        await createInvoice.mutateAsync(invoiceData);
-        toast({
-          title: "Success",
-          description: "Invoice created successfully",
-        });
+        // Create new invoice
+        const newInvoice = await createInvoice.mutateAsync(invoiceData);
+        invoiceId = newInvoice.id;
+        
+        // Create invoice items
+        const invoiceItems = items.map(item => ({
+          invoice_id: invoiceId,
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          line_total: item.line_total
+        }));
+        
+        await createInvoiceItems.mutateAsync(invoiceItems);
+        
+        // Reduce inventory quantities for items that have inventory_id
+        for (const item of items) {
+          if (item.inventory_id && item.quantity > 0) {
+            await updateInventoryQuantity.mutateAsync({
+              inventoryId: item.inventory_id,
+              quantityToReduce: item.quantity
+            });
+          }
+        }
       }
+
+      toast({
+        title: "Success",
+        description: invoice ? "Invoice updated successfully" : "Invoice created successfully",
+      });
       onClose();
     } catch (error) {
       console.error('Save error:', error);
