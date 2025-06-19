@@ -33,7 +33,11 @@ const Settings = () => {
     phone: '+234 (0) 123-456-7890',
     email: 'info@marvellous-steel.com',
     website: 'www.marvellous-steel.com',
-    tax_id: 'TAX123456789'
+    tax_id: 'TAX123456789',
+    bank_name: 'Access Bank Plc',
+    account_name: 'Marvellous Steel Enterprise',
+    account_number: '0123456789',
+    sort_code: '044150149'
   });
 
   const [invoiceSettings, setInvoiceSettings] = useState({
@@ -53,7 +57,11 @@ const Settings = () => {
         phone: companyInfo.phone || '+234 (0) 123-456-7890',
         email: companyInfo.email || 'info@marvellous-steel.com',
         website: companyInfo.website || 'www.marvellous-steel.com',
-        tax_id: companyInfo.tax_id || 'TAX123456789'
+        tax_id: companyInfo.tax_id || 'TAX123456789',
+        bank_name: companyInfo.bank_name || 'Access Bank Plc',
+        account_name: companyInfo.account_name || 'Marvellous Steel Enterprise',
+        account_number: companyInfo.account_number || '0123456789',
+        sort_code: companyInfo.sort_code || '044150149'
       });
     }
   }, [companyInfo]);
@@ -75,6 +83,10 @@ const Settings = () => {
         email: companySettings.email,
         website: companySettings.website,
         tax_id: companySettings.tax_id,
+        bank_name: companySettings.bank_name,
+        account_name: companySettings.account_name,
+        account_number: companySettings.account_number,
+        sort_code: companySettings.sort_code,
       });
       toast({
         title: "Success",
@@ -230,6 +242,46 @@ const Settings = () => {
                 />
               </div>
             </div>
+
+            {/* Bank Details Section */}
+            <div className="pt-4 border-t border-steel-200">
+              <h4 className="font-semibold text-gray-900 mb-4">Bank Details</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="bankName">Bank Name</Label>
+                  <Input
+                    id="bankName"
+                    value={companySettings.bank_name}
+                    onChange={(e) => setCompanySettings({...companySettings, bank_name: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="accountName">Account Name</Label>
+                  <Input
+                    id="accountName"
+                    value={companySettings.account_name}
+                    onChange={(e) => setCompanySettings({...companySettings, account_name: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="accountNumber">Account Number</Label>
+                  <Input
+                    id="accountNumber"
+                    value={companySettings.account_number}
+                    onChange={(e) => setCompanySettings({...companySettings, account_number: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="sortCode">Sort Code</Label>
+                  <Input
+                    id="sortCode"
+                    value={companySettings.sort_code}
+                    onChange={(e) => setCompanySettings({...companySettings, sort_code: e.target.value})}
+                  />
+                </div>
+              </div>
+            </div>
+
             <Button 
               onClick={handleSaveCompany} 
               className="steel-button"

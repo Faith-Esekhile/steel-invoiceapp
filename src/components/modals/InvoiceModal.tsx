@@ -36,7 +36,7 @@ interface InvoiceItem {
   inventory_id?: string;
 }
 
-interface InvoiceModalProps {
+interface Invo iceModalProps {
   isOpen: boolean;
   onClose: () => void;
   invoice?: Invoice;
@@ -65,7 +65,8 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
   const { toast } = useToast();
 
   useEffect(() => {
-    if (invoice) {
+    if (invoice && isOpen) {
+      console.log('Loading invoice data:', invoice);
       setFormData({
         client_id: invoice.client_id,
         invoice_number: invoice.invoice_number,
@@ -83,7 +84,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
         unit_price: invoice.subtotal,
         line_total: invoice.subtotal
       }]);
-    } else {
+    } else if (!invoice && isOpen) {
       const invoiceCount = Date.now().toString().slice(-4);
       setFormData({
         client_id: '',
@@ -160,9 +161,12 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
     
     const subtotal = calculateSubtotal();
     const invoiceData = {
-      ...formData,
+      client_id: formData.client_id,
+      invoice_number: formData.invoice_number,
       issue_date: format(formData.issue_date, 'yyyy-MM-dd'),
       due_date: format(formData.due_date, 'yyyy-MM-dd'),
+      notes: formData.notes,
+      status: formData.status,
       subtotal: subtotal,
       tax_amount: 0,
       total_amount: subtotal
@@ -172,8 +176,12 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
       let invoiceId: string;
 
       if (invoice) {
-        // Update existing invoice
-        await updateInvoice.mutateAsync({ id: invoice.id, ...invoiceData });
+        // Update existing invoice - preserve the original data structure
+        console.log('Updating invoice with data:', invoiceData);
+        await updateInvoice.mutateAsync({ 
+          id: invoice.id, 
+          ...invoiceData
+        });
         invoiceId = invoice.id;
       } else {
         // Create new invoice
@@ -307,7 +315,13 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
           {/* Status */}
           <div>
             <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={(value: 'draft' | 'pending' | 'paid' | 'overdue') => setFormData({ ...formData, status: value })}>
+            <Select 
+              value={formData.status} 
+              onValueChange={(value: 'draft' | 'pending' | 'paid' | 'overdue') => {
+                console.log('Status changing to:', value);
+                setFormData({ ...formData, status: value });
+              }}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -320,110 +334,112 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
             </Select>
           </div>
 
-          {/* Line Items */}
-          <div>
-            <div className="flex justify-between items-center mb-4">
-              <Label className="text-lg font-semibold">Invoice Items</Label>
-              <Button type="button" onClick={addItem} variant="outline" size="sm">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Item
-              </Button>
-            </div>
+          {/* Line Items - only show for new invoices */}
+          {!invoice && (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <Label className="text-lg font-semibold">Invoice Items</Label>
+                <Button type="button" onClick={addItem} variant="outline" size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Item
+                </Button>
+              </div>
 
-            <div className="space-y-4">
-              {items.map((item, index) => (
-                <div key={item.id} className="border rounded-lg p-4 space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">Item #{index + 1}</span>
-                    {items.length > 1 && (
-                      <Button 
-                        type="button" 
-                        onClick={() => removeItem(item.id)}
-                        variant="outline" 
-                        size="sm"
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
+              <div className="space-y-4">
+                {items.map((item, index) => (
+                  <div key={item.id} className="border rounded-lg p-4 space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Item #{index + 1}</span>
+                      {items.length > 1 && (
+                        <Button 
+                          type="button" 
+                          onClick={() => removeItem(item.id)}
+                          variant="outline" 
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2">
-                      <Label htmlFor={`description-${item.id}`}>Description *</Label>
-                      <div className="flex gap-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="md:col-span-2">
+                        <Label htmlFor={`description-${item.id}`}>Description *</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id={`description-${item.id}`}
+                            value={item.description}
+                            onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
+                            placeholder="Item description"
+                            required
+                          />
+                          {inventory.length > 0 && (
+                            <Select onValueChange={(value) => handleInventorySelect(item.id, value)}>
+                              <SelectTrigger className="w-48">
+                                <SelectValue placeholder="From inventory" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {inventory.map((inventoryItem) => (
+                                  <SelectItem key={inventoryItem.id} value={inventoryItem.id}>
+                                    {inventoryItem.name} - {formatCurrency(inventoryItem.unit_price)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor={`quantity-${item.id}`}>Quantity *</Label>
                         <Input
-                          id={`description-${item.id}`}
-                          value={item.description}
-                          onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
-                          placeholder="Item description"
+                          id={`quantity-${item.id}`}
+                          type="number"
+                          min="1"
+                          value={item.quantity}
+                          onChange={(e) => handleItemChange(item.id, 'quantity', parseInt(e.target.value) || 1)}
                           required
                         />
-                        {inventory.length > 0 && (
-                          <Select onValueChange={(value) => handleInventorySelect(item.id, value)}>
-                            <SelectTrigger className="w-48">
-                              <SelectValue placeholder="From inventory" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {inventory.map((inventoryItem) => (
-                                <SelectItem key={inventoryItem.id} value={inventoryItem.id}>
-                                  {inventoryItem.name} - {formatCurrency(inventoryItem.unit_price)}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        )}
                       </div>
-                    </div>
 
-                    <div>
-                      <Label htmlFor={`quantity-${item.id}`}>Quantity *</Label>
-                      <Input
-                        id={`quantity-${item.id}`}
-                        type="number"
-                        min="1"
-                        value={item.quantity}
-                        onChange={(e) => handleItemChange(item.id, 'quantity', parseInt(e.target.value) || 1)}
-                        required
-                      />
-                    </div>
+                      <div>
+                        <Label htmlFor={`unit_price-${item.id}`}>Unit Price (₦) *</Label>
+                        <Input
+                          id={`unit_price-${item.id}`}
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={item.unit_price}
+                          onChange={(e) => handleItemChange(item.id, 'unit_price', parseFloat(e.target.value) || 0)}
+                          required
+                        />
+                      </div>
 
-                    <div>
-                      <Label htmlFor={`unit_price-${item.id}`}>Unit Price (₦) *</Label>
-                      <Input
-                        id={`unit_price-${item.id}`}
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={item.unit_price}
-                        onChange={(e) => handleItemChange(item.id, 'unit_price', parseFloat(e.target.value) || 0)}
-                        required
-                      />
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <Label>Line Total</Label>
-                      <div className="text-lg font-semibold text-gray-900">
-                        {formatCurrency(item.line_total)}
+                      <div className="md:col-span-2">
+                        <Label>Line Total</Label>
+                        <div className="text-lg font-semibold text-gray-900">
+                          {formatCurrency(item.line_total)}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
 
-            {/* Totals */}
-            <div className="border-t pt-4 mt-4">
-              <div className="flex justify-end">
-                <div className="w-64 space-y-2">
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>Total:</span>
-                    <span>{formatCurrency(calculateSubtotal())}</span>
+              {/* Totals */}
+              <div className="border-t pt-4 mt-4">
+                <div className="flex justify-end">
+                  <div className="w-64 space-y-2">
+                    <div className="flex justify-between text-lg font-bold">
+                      <span>Total:</span>
+                      <span>{formatCurrency(calculateSubtotal())}</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Notes */}
           <div>

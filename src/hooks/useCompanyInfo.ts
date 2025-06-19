@@ -20,7 +20,7 @@ export const useCompanyInfo = () => {
         .from('company_info')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;
@@ -37,15 +37,37 @@ export const useUpdateCompanyInfo = () => {
     mutationFn: async (updates: CompanyInfoUpdate) => {
       if (!user) throw new Error('User not authenticated');
       
-      const { data, error } = await supabase
+      // First check if company info exists
+      const { data: existing, error: checkError } = await supabase
         .from('company_info')
-        .update(updates)
+        .select('id')
         .eq('user_id', user.id)
-        .select()
-        .single();
+        .maybeSingle();
       
-      if (error) throw error;
-      return data;
+      if (checkError) throw checkError;
+      
+      if (existing) {
+        // Update existing record
+        const { data, error } = await supabase
+          .from('company_info')
+          .update(updates)
+          .eq('user_id', user.id)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        return data;
+      } else {
+        // Create new record
+        const { data, error } = await supabase
+          .from('company_info')
+          .insert({ ...updates, user_id: user.id })
+          .select()
+          .single();
+        
+        if (error) throw error;
+        return data;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['company_info'] });

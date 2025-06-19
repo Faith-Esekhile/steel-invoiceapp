@@ -236,19 +236,19 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="font-medium text-gray-700">Bank Name:</p>
-                  <p className="text-gray-600">Access Bank Plc</p>
+                  <p className="text-gray-600">{companyInfo?.bank_name || 'Access Bank Plc'}</p>
                 </div>
                 <div>
                   <p className="font-medium text-gray-700">Account Name:</p>
-                  <p className="text-gray-600">Marvellous Steel Enterprise</p>
+                  <p className="text-gray-600">{companyInfo?.account_name || 'Marvellous Steel Enterprise'}</p>
                 </div>
                 <div>
                   <p className="font-medium text-gray-700">Account Number:</p>
-                  <p className="text-gray-600">0123456789</p>
+                  <p className="text-gray-600">{companyInfo?.account_number || '0123456789'}</p>
                 </div>
                 <div>
                   <p className="font-medium text-gray-700">Sort Code:</p>
-                  <p className="text-gray-600">044150149</p>
+                  <p className="text-gray-600">{companyInfo?.sort_code || '044150149'}</p>
                 </div>
               </div>
             </div>
