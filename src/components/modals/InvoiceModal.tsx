@@ -165,7 +165,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
       issue_date: format(formData.issue_date, 'yyyy-MM-dd'),
       due_date: format(formData.due_date, 'yyyy-MM-dd'),
       notes: formData.notes,
-      status: formData.status,
+      status: formData.status, // Ensure status is explicitly passed
       subtotal: subtotal,
       tax_amount: 0,
       total_amount: subtotal
@@ -175,13 +175,16 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
       let invoiceId: string;
 
       if (invoice) {
-        // Update existing invoice - make sure status is properly updated
+        // Update existing invoice - ensure status is properly updated
         console.log('Updating invoice with data:', invoiceData);
-        console.log('Current status being saved:', formData.status);
-        await updateInvoice.mutateAsync({ 
+        console.log('Status being updated to:', formData.status);
+        
+        const updatedInvoice = await updateInvoice.mutateAsync({ 
           id: invoice.id, 
           ...invoiceData
         });
+        
+        console.log('Invoice updated successfully:', updatedInvoice);
         invoiceId = invoice.id;
       } else {
         // Create new invoice
@@ -318,8 +321,8 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
             <Select 
               value={formData.status} 
               onValueChange={(value: 'draft' | 'pending' | 'paid' | 'overdue') => {
-                console.log('Status changing to:', value);
-                setFormData({ ...formData, status: value });
+                console.log('Status changing from', formData.status, 'to:', value);
+                setFormData(prev => ({ ...prev, status: value }));
               }}
             >
               <SelectTrigger>
