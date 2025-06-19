@@ -175,8 +175,9 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
       let invoiceId: string;
 
       if (invoice) {
-        // Update existing invoice - preserve the original data structure
+        // Update existing invoice - make sure status is properly updated
         console.log('Updating invoice with data:', invoiceData);
+        console.log('Current status being saved:', formData.status);
         await updateInvoice.mutateAsync({ 
           id: invoice.id, 
           ...invoiceData
