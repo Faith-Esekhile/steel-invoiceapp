@@ -47,13 +47,17 @@ export type Database = {
       }
       company_info: {
         Row: {
+          account_name: string | null
+          account_number: string | null
           address: string | null
+          bank_name: string | null
           company_name: string
           created_at: string
           email: string | null
           id: string
           logo_url: string | null
           phone: string | null
+          sort_code: string | null
           tagline: string | null
           tax_id: string | null
           updated_at: string
@@ -61,13 +65,17 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          account_name?: string | null
+          account_number?: string | null
           address?: string | null
+          bank_name?: string | null
           company_name?: string
           created_at?: string
           email?: string | null
           id?: string
           logo_url?: string | null
           phone?: string | null
+          sort_code?: string | null
           tagline?: string | null
           tax_id?: string | null
           updated_at?: string
@@ -75,13 +83,17 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          account_name?: string | null
+          account_number?: string | null
           address?: string | null
+          bank_name?: string | null
           company_name?: string
           created_at?: string
           email?: string | null
           id?: string
           logo_url?: string | null
           phone?: string | null
+          sort_code?: string | null
           tagline?: string | null
           tax_id?: string | null
           updated_at?: string
