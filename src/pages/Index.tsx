@@ -7,6 +7,7 @@ import Dashboard from '@/components/Dashboard';
 import InvoiceManager from '@/components/InvoiceManager';
 import ClientManager from '@/components/ClientManager';
 import Inventory from '@/components/Inventory';
+import CompanyExpenses from '@/components/CompanyExpenses';
 import Settings from '@/components/Settings';
 
 const AppContent = () => {

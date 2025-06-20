@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useInvoices } from '@/hooks/useInvoices';
 import { useInventory } from '@/hooks/useInventory';
+import Profit from '@/components/Profit';
 
 interface DashboardProps {
   onNavigate: (tab: string) => void;
@@ -108,6 +108,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Profit Section */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Profit Overview</h2>
+        <Profit />
       </div>
 
       {/* Alerts */}
