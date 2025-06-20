@@ -6,6 +6,7 @@ import {
   FileText, 
   Users, 
   Package,
+  Receipt,
   Settings, 
   Menu, 
   X,
@@ -28,6 +29,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab }) => {
     { id: 'invoices', label: 'Invoices', icon: FileText },
     { id: 'clients', label: 'Clients', icon: Users },
     { id: 'inventory', label: 'Inventory', icon: Package },
+    { id: 'expenses', label: 'Company Expenses', icon: Receipt },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
