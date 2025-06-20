@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -165,18 +166,21 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
       issue_date: format(formData.issue_date, 'yyyy-MM-dd'),
       due_date: format(formData.due_date, 'yyyy-MM-dd'),
       notes: formData.notes,
-      status: formData.status, // Ensure status is explicitly passed
+      status: formData.status,
       subtotal: subtotal,
       tax_amount: 0,
       total_amount: subtotal
     };
 
+    console.log('Submitting invoice data:', invoiceData);
+    console.log('Current status in form:', formData.status);
+
     try {
       let invoiceId: string;
 
       if (invoice) {
-        // Update existing invoice - ensure status is properly updated
-        console.log('Updating invoice with data:', invoiceData);
+        // Update existing invoice
+        console.log('Updating invoice with ID:', invoice.id);
         console.log('Status being updated to:', formData.status);
         
         const updatedInvoice = await updateInvoice.mutateAsync({ 

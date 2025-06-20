@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Edit, Trash2, DollarSign } from 'lucide-react';
+import { Plus, Edit, Trash2, TrendingDown } from 'lucide-react';
 import { useCompanyExpenses, useDeleteExpense } from '@/hooks/useCompanyExpenses';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -102,7 +102,7 @@ const CompanyExpenses = () => {
               <p className="text-sm font-medium text-steel-600">Total Expenses</p>
               <p className="text-3xl font-bold text-red-600">{formatCurrency(totalExpenses)}</p>
             </div>
-            <DollarSign className="w-12 h-12 text-red-600" />
+            <TrendingDown className="w-12 h-12 text-red-600" />
           </div>
         </CardContent>
       </Card>
@@ -115,7 +115,7 @@ const CompanyExpenses = () => {
         <CardContent>
           {expenses.length === 0 ? (
             <div className="text-center py-8">
-              <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <TrendingDown className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">No expenses recorded yet</p>
               <Button 
                 variant="outline" 
