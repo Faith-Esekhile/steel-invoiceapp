@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 import { useInvoices } from '@/hooks/useInvoices';
 import { useCompanyExpenses } from '@/hooks/useCompanyExpenses';
 
@@ -56,7 +56,7 @@ const Profit = () => {
         </CardContent>
       </Card>
 
-      {/* Profit Card */}
+      {/* Profit Card - Removed DollarSign icon */}
       <Card className="steel-card">
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
@@ -66,7 +66,11 @@ const Profit = () => {
                 {formatCurrency(profit)}
               </p>
             </div>
-            <DollarSign className={`w-8 h-8 ${isPositive ? 'text-green-600' : 'text-red-600'}`} />
+            {isPositive ? (
+              <TrendingUp className="w-8 h-8 text-green-600" />
+            ) : (
+              <TrendingDown className="w-8 h-8 text-red-600" />
+            )}
           </div>
         </CardContent>
       </Card>

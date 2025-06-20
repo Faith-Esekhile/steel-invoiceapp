@@ -23,6 +23,8 @@ const AppContent = () => {
         return <ClientManager />;
       case 'inventory':
         return <Inventory />;
+      case 'expenses':
+        return <CompanyExpenses />;
       case 'settings':
         return <Settings />;
       default:
