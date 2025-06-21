@@ -1,8 +1,7 @@
 
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useInvoices } from '@/hooks/useInvoices';
-import { useInvoiceItems } from '@/hooks/useInvoiceItems';
 
 const SalesChart = () => {
   const { data: invoices = [] } = useInvoices();
@@ -13,8 +12,8 @@ const SalesChart = () => {
     
     // Initialize 12 months
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
     ];
     
     months.forEach(month => {
@@ -44,7 +43,7 @@ const SalesChart = () => {
 
   const data = createMonthlySalesData();
   const productTypes = ['Steel Fabrication', 'Metal Works', 'Small Parts'];
-  const colors = ['#2563eb', '#dc2626', '#16a34a'];
+  const colors = ['#3b82f6', '#10b981', '#f59e0b'];
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -56,77 +55,81 @@ const SalesChart = () => {
   };
 
   return (
-    <div className="w-full h-80">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart
-          data={data}
-          margin={{
-            top: 20,
-            right: 30,
-            left: 20,
-            bottom: 60,
-          }}
-        >
-          <CartesianGrid 
-            strokeDasharray="3 3" 
-            stroke="#e5e7eb"
-            opacity={0.7}
-          />
-          <XAxis 
-            dataKey="month" 
-            stroke="#6b7280"
-            fontSize={12}
-            angle={-45}
-            textAnchor="end"
-            height={80}
-            interval={0}
-          />
-          <YAxis 
-            stroke="#6b7280"
-            fontSize={12}
-            tickFormatter={formatCurrency}
-            width={80}
-          />
-          <Tooltip 
-            formatter={(value: number) => [formatCurrency(value), 'Sales']}
-            labelStyle={{ color: '#374151' }}
-            contentStyle={{
-              backgroundColor: '#f9fafb',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">Monthly Sales</h3>
+        <p className="text-sm text-gray-500">Monitor your sales performance by category</p>
+      </div>
+      <div className="w-full h-80">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={data}
+            margin={{
+              top: 20,
+              right: 20,
+              left: 20,
+              bottom: 20,
             }}
-          />
-          <Legend 
-            wrapperStyle={{ 
-              paddingTop: '20px',
-              fontSize: '12px'
-            }}
-          />
-          {productTypes.map((product, index) => (
-            <Line
-              key={product}
-              type="monotone"
-              dataKey={product}
-              stroke={colors[index]}
-              strokeWidth={2}
-              dot={{ 
-                fill: colors[index], 
-                strokeWidth: 2, 
-                r: 4,
-                stroke: '#ffffff'
-              }}
-              activeDot={{ 
-                r: 6, 
-                stroke: colors[index],
-                strokeWidth: 2,
-                fill: '#ffffff'
-              }}
-              connectNulls={false}
+          >
+            <defs>
+              {colors.map((color, index) => (
+                <linearGradient key={index} id={`salesGradient${index}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={color} stopOpacity={0.1}/>
+                  <stop offset="95%" stopColor={color} stopOpacity={0}/>
+                </linearGradient>
+              ))}
+            </defs>
+            <CartesianGrid 
+              strokeDasharray="3 3" 
+              stroke="#f1f5f9"
+              vertical={false}
             />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
+            <XAxis 
+              dataKey="month" 
+              stroke="#64748b"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis 
+              stroke="#64748b"
+              fontSize={12}
+              tickFormatter={formatCurrency}
+              tickLine={false}
+              axisLine={false}
+            />
+            <Tooltip 
+              formatter={(value: number, name: string) => [formatCurrency(value), name]}
+              labelStyle={{ color: '#1f2937', fontWeight: '500' }}
+              contentStyle={{
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                border: 'none',
+                borderRadius: '12px',
+                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                backdropFilter: 'blur(8px)'
+              }}
+            />
+            {productTypes.map((product, index) => (
+              <Line
+                key={product}
+                type="monotone"
+                dataKey={product}
+                stroke={colors[index]}
+                strokeWidth={3}
+                dot={false}
+                activeDot={{ 
+                  r: 5, 
+                  stroke: colors[index],
+                  strokeWidth: 3,
+                  fill: '#ffffff',
+                  filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.1))'
+                }}
+                connectNulls={false}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };
