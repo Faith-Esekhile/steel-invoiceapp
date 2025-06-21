@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -42,14 +41,23 @@ interface InvoiceModalProps {
   invoice?: Invoice;
 }
 
+type InvoiceStatus = 'draft' | 'pending' | 'paid' | 'overdue';
+
 const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    client_id: string;
+    invoice_number: string;
+    issue_date: Date;
+    due_date: Date;
+    notes: string;
+    status: InvoiceStatus;
+  }>({
     client_id: '',
     invoice_number: '',
     issue_date: new Date(),
     due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     notes: '',
-    status: 'draft' as const
+    status: 'draft'
   });
 
   const [items, setItems] = useState<InvoiceItem[]>([
@@ -73,7 +81,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
         issue_date: new Date(invoice.issue_date),
         due_date: new Date(invoice.due_date),
         notes: invoice.notes || '',
-        status: invoice.status as 'draft' | 'pending' | 'paid' | 'overdue'
+        status: invoice.status as InvoiceStatus
       });
       
       // For existing invoices, show a simple line item based on subtotal
@@ -333,7 +341,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
             <Label htmlFor="status">Status</Label>
             <Select 
               value={formData.status} 
-              onValueChange={(value: 'draft' | 'pending' | 'paid' | 'overdue') => {
+              onValueChange={(value: InvoiceStatus) => {
                 console.log('Status being changed to:', value);
                 setFormData(prev => ({ ...prev, status: value }));
               }}
