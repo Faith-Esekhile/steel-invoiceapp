@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -172,23 +171,21 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
       total_amount: subtotal
     };
 
-    console.log('Submitting invoice data:', invoiceData);
-    console.log('Current status in form:', formData.status);
+    console.log('Submitting invoice with status:', formData.status);
 
     try {
       let invoiceId: string;
 
       if (invoice) {
         // Update existing invoice
-        console.log('Updating invoice with ID:', invoice.id);
-        console.log('Status being updated to:', formData.status);
+        console.log('Updating invoice ID:', invoice.id, 'with status:', formData.status);
         
-        const updatedInvoice = await updateInvoice.mutateAsync({ 
+        await updateInvoice.mutateAsync({ 
           id: invoice.id, 
           ...invoiceData
         });
         
-        console.log('Invoice updated successfully:', updatedInvoice);
+        console.log('Invoice updated successfully');
         invoiceId = invoice.id;
       } else {
         // Create new invoice
@@ -325,7 +322,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
             <Select 
               value={formData.status} 
               onValueChange={(value: 'draft' | 'pending' | 'paid' | 'overdue') => {
-                console.log('Status changing from', formData.status, 'to:', value);
+                console.log('Status changing to:', value);
                 setFormData(prev => ({ ...prev, status: value }));
               }}
             >

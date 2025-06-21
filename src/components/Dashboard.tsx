@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,8 @@ import {
 import { useInvoices } from '@/hooks/useInvoices';
 import { useInventory } from '@/hooks/useInventory';
 import Profit from '@/components/Profit';
+import SalesChart from '@/components/charts/SalesChart';
+import ExpensesChart from '@/components/charts/ExpensesChart';
 
 interface DashboardProps {
   onNavigate: (tab: string) => void;
@@ -108,6 +111,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <SalesChart />
+        <ExpensesChart />
       </div>
 
       {/* Profit Section */}
