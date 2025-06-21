@@ -7,7 +7,7 @@ const ExpensesChart = () => {
   const { data: expenses = [] } = useCompanyExpenses();
 
   const createMonthlyExpensesData = () => {
-    const monthlyData: { [key: string]: { [category: string]: number; month: string } } = {};
+    const monthlyData: Record<string, Record<string, number | string>> = {};
     
     // Initialize 12 months
     const months = [
@@ -25,10 +25,10 @@ const ExpensesChart = () => {
       const monthName = months[date.getMonth()];
       const category = expense.category || 'Other';
       
-      if (!monthlyData[monthName][category]) {
+      if (typeof monthlyData[monthName][category] !== 'number') {
         monthlyData[monthName][category] = 0;
       }
-      monthlyData[monthName][category] += Number(expense.amount);
+      monthlyData[monthName][category] = (monthlyData[monthName][category] as number) + Number(expense.amount);
     });
 
     return Object.values(monthlyData);
@@ -109,15 +109,15 @@ const ExpensesChart = () => {
               type="monotone"
               dataKey={category}
               stroke={colors[index % colors.length]}
-              strokeWidth={3}
+              strokeWidth={2}
               dot={{ 
                 fill: colors[index % colors.length], 
                 strokeWidth: 2, 
-                r: 5,
+                r: 4,
                 stroke: '#ffffff'
               }}
               activeDot={{ 
-                r: 7, 
+                r: 6, 
                 stroke: colors[index % colors.length],
                 strokeWidth: 2,
                 fill: '#ffffff'

@@ -9,7 +9,7 @@ const SalesChart = () => {
 
   // Create monthly sales data for products
   const createMonthlySalesData = () => {
-    const monthlyData: { [key: string]: { [product: string]: number; month: string } } = {};
+    const monthlyData: Record<string, Record<string, number | string>> = {};
     
     // Initialize 12 months
     const months = [
@@ -33,10 +33,10 @@ const SalesChart = () => {
       const productType = invoice.subtotal > 100000 ? 'Steel Fabrication' : 
                          invoice.subtotal > 50000 ? 'Metal Works' : 'Small Parts';
       
-      if (!monthlyData[monthName][productType]) {
+      if (typeof monthlyData[monthName][productType] !== 'number') {
         monthlyData[monthName][productType] = 0;
       }
-      monthlyData[monthName][productType] += invoice.subtotal;
+      monthlyData[monthName][productType] = (monthlyData[monthName][productType] as number) + invoice.subtotal;
     });
 
     return Object.values(monthlyData);
@@ -109,15 +109,15 @@ const SalesChart = () => {
               type="monotone"
               dataKey={product}
               stroke={colors[index]}
-              strokeWidth={3}
+              strokeWidth={2}
               dot={{ 
                 fill: colors[index], 
                 strokeWidth: 2, 
-                r: 5,
+                r: 4,
                 stroke: '#ffffff'
               }}
               activeDot={{ 
-                r: 7, 
+                r: 6, 
                 stroke: colors[index],
                 strokeWidth: 2,
                 fill: '#ffffff'
