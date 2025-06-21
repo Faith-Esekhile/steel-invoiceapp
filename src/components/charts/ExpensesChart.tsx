@@ -1,46 +1,50 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useCompanyExpenses } from '@/hooks/useCompanyExpenses';
 
 const ExpensesChart = () => {
   const { data: expenses = [] } = useCompanyExpenses();
 
-  // Process data to get expenses by month
-  const expensesByMonth = React.useMemo(() => {
-    const monthlyData: { [key: string]: number } = {};
+  const createMonthlyExpensesData = () => {
+    const monthlyData: { [key: string]: { [category: string]: number; month: string } } = {};
     
-    expenses.forEach(expense => {
-      const date = new Date(expense.expense_date);
-      const monthKey = date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short' 
-      });
-      
-      monthlyData[monthKey] = (monthlyData[monthKey] || 0) + expense.amount;
+    // Initialize 12 months
+    const months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    
+    months.forEach(month => {
+      monthlyData[month] = { month };
     });
 
-    // Get last 6 months
-    const months = [];
-    const currentDate = new Date();
-    
-    for (let i = 5; i >= 0; i--) {
-      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-      const monthKey = date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short' 
-      });
+    // Group expenses by month and category
+    expenses.forEach(expense => {
+      const date = new Date(expense.expense_date);
+      const monthName = months[date.getMonth()];
+      const category = expense.category || 'Other';
       
-      months.push({
-        month: monthKey,
-        expenses: monthlyData[monthKey] || 0
-      });
-    }
-    
-    return months;
-  }, [expenses]);
+      if (!monthlyData[monthName][category]) {
+        monthlyData[monthName][category] = 0;
+      }
+      monthlyData[monthName][category] += Number(expense.amount);
+    });
+
+    return Object.values(monthlyData);
+  };
+
+  const data = createMonthlyExpensesData();
+  
+  // Get all unique categories
+  const categories = Array.from(new Set(
+    expenses.map(expense => expense.category || 'Other')
+  ));
+  
+  const colors = [
+    '#ef4444', '#f97316', '#eab308', '#22c55e', 
+    '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899'
+  ];
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -51,48 +55,79 @@ const ExpensesChart = () => {
     }).format(value);
   };
 
-  const chartConfig = {
-    expenses: {
-      label: "Expenses",
-      color: "hsl(var(--destructive))",
-    },
-  };
-
   return (
-    <Card className="steel-card">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-900">Expenses by Month</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="h-[300px]">
-          <LineChart data={expensesByMonth}>
-            <XAxis 
-              dataKey="month" 
-              tickLine={false}
-              axisLine={false}
-              className="text-xs"
-            />
-            <YAxis 
-              tickLine={false}
-              axisLine={false}
-              className="text-xs"
-              tickFormatter={formatCurrency}
-            />
-            <ChartTooltip 
-              content={<ChartTooltipContent />}
-              formatter={(value) => [formatCurrency(Number(value)), 'Expenses']}
-            />
-            <Line 
+    <div className="w-full h-80">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart
+          data={data}
+          margin={{
+            top: 20,
+            right: 30,
+            left: 20,
+            bottom: 60,
+          }}
+        >
+          <CartesianGrid 
+            strokeDasharray="3 3" 
+            stroke="#e5e7eb"
+            opacity={0.7}
+          />
+          <XAxis 
+            dataKey="month" 
+            stroke="#6b7280"
+            fontSize={12}
+            angle={-45}
+            textAnchor="end"
+            height={80}
+            interval={0}
+          />
+          <YAxis 
+            stroke="#6b7280"
+            fontSize={12}
+            tickFormatter={formatCurrency}
+            width={80}
+          />
+          <Tooltip 
+            formatter={(value: number) => [formatCurrency(value), 'Expenses']}
+            labelStyle={{ color: '#374151' }}
+            contentStyle={{
+              backgroundColor: '#f9fafb',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            }}
+          />
+          <Legend 
+            wrapperStyle={{ 
+              paddingTop: '20px',
+              fontSize: '12px'
+            }}
+          />
+          {categories.map((category, index) => (
+            <Line
+              key={category}
               type="monotone"
-              dataKey="expenses" 
-              stroke="var(--color-expenses)"
+              dataKey={category}
+              stroke={colors[index % colors.length]}
               strokeWidth={3}
-              dot={{ fill: "var(--color-expenses)", strokeWidth: 2, r: 4 }}
+              dot={{ 
+                fill: colors[index % colors.length], 
+                strokeWidth: 2, 
+                r: 5,
+                stroke: '#ffffff'
+              }}
+              activeDot={{ 
+                r: 7, 
+                stroke: colors[index % colors.length],
+                strokeWidth: 2,
+                fill: '#ffffff'
+              }}
+              connectNulls={false}
             />
-          </LineChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 };
 
