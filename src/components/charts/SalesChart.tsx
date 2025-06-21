@@ -2,15 +2,15 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { useInvoices } from '@/hooks/useInvoices';
 
 const SalesChart = () => {
   const { data: invoices = [] } = useInvoices();
 
-  // Process data to get sales by month
-  const salesByMonth = React.useMemo(() => {
-    const monthlyData: { [key: string]: number } = {};
+  // Process data to get product sales by month
+  const productSalesByMonth = React.useMemo(() => {
+    const monthlyData: { [key: string]: { [product: string]: number } } = {};
     
     invoices
       .filter(invoice => invoice.status === 'paid')
@@ -21,7 +21,14 @@ const SalesChart = () => {
           month: 'short' 
         });
         
-        monthlyData[monthKey] = (monthlyData[monthKey] || 0) + invoice.total_amount;
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = {};
+        }
+        
+        // For now, we'll use a generic "Steel Products" category
+        // In a real app, you'd get this from invoice items
+        const productName = 'Steel Products';
+        monthlyData[monthKey][productName] = (monthlyData[monthKey][productName] || 0) + invoice.total_amount;
       });
 
     // Get last 6 months
@@ -37,7 +44,7 @@ const SalesChart = () => {
       
       months.push({
         month: monthKey,
-        sales: monthlyData[monthKey] || 0
+        steelProducts: monthlyData[monthKey]?.['Steel Products'] || 0
       });
     }
     
@@ -54,8 +61,8 @@ const SalesChart = () => {
   };
 
   const chartConfig = {
-    sales: {
-      label: "Sales",
+    steelProducts: {
+      label: "Steel Products",
       color: "hsl(var(--chart-1))",
     },
   };
@@ -67,7 +74,7 @@ const SalesChart = () => {
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[300px]">
-          <BarChart data={salesByMonth}>
+          <LineChart data={productSalesByMonth}>
             <XAxis 
               dataKey="month" 
               tickLine={false}
@@ -84,12 +91,14 @@ const SalesChart = () => {
               content={<ChartTooltipContent />}
               formatter={(value) => [formatCurrency(Number(value)), 'Sales']}
             />
-            <Bar 
-              dataKey="sales" 
-              fill="var(--color-sales)"
-              radius={[4, 4, 0, 0]}
+            <Line 
+              type="monotone"
+              dataKey="steelProducts" 
+              stroke="var(--color-steelProducts)"
+              strokeWidth={3}
+              dot={{ fill: "var(--color-steelProducts)", strokeWidth: 2, r: 4 }}
             />
-          </BarChart>
+          </LineChart>
         </ChartContainer>
       </CardContent>
     </Card>

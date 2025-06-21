@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -48,7 +49,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
     issue_date: new Date(),
     due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     notes: '',
-    status: 'draft' as 'draft' | 'pending' | 'paid' | 'overdue'
+    status: 'draft' as const
   });
 
   const [items, setItems] = useState<InvoiceItem[]>([
@@ -158,6 +159,15 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!formData.client_id) {
+      toast({
+        title: "Error",
+        description: "Please select a client",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const subtotal = calculateSubtotal();
     const invoiceData = {
       client_id: formData.client_id,
@@ -171,25 +181,27 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
       total_amount: subtotal
     };
 
-    console.log('Submitting invoice with status:', formData.status);
+    console.log('Final invoice data being submitted:', invoiceData);
+    console.log('Status being sent:', formData.status);
 
     try {
       let invoiceId: string;
 
       if (invoice) {
         // Update existing invoice
-        console.log('Updating invoice ID:', invoice.id, 'with status:', formData.status);
+        console.log('Updating invoice ID:', invoice.id, 'with data:', invoiceData);
         
-        await updateInvoice.mutateAsync({ 
+        const updatedInvoice = await updateInvoice.mutateAsync({ 
           id: invoice.id, 
           ...invoiceData
         });
         
-        console.log('Invoice updated successfully');
+        console.log('Invoice updated successfully:', updatedInvoice);
         invoiceId = invoice.id;
       } else {
         // Create new invoice
         const newInvoice = await createInvoice.mutateAsync(invoiceData);
+        console.log('New invoice created:', newInvoice);
         invoiceId = newInvoice.id;
         
         // Create invoice items
@@ -223,7 +235,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
       console.error('Save error:', error);
       toast({
         title: "Error",
-        description: "Failed to save invoice",
+        description: "Failed to save invoice. Please check the status value.",
         variant: "destructive",
       });
     }
@@ -322,7 +334,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
             <Select 
               value={formData.status} 
               onValueChange={(value: 'draft' | 'pending' | 'paid' | 'overdue') => {
-                console.log('Status changing to:', value);
+                console.log('Status being changed to:', value);
                 setFormData(prev => ({ ...prev, status: value }));
               }}
             >

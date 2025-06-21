@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { useCompanyExpenses } from '@/hooks/useCompanyExpenses';
 
 const ExpensesChart = () => {
@@ -65,7 +65,7 @@ const ExpensesChart = () => {
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[300px]">
-          <BarChart data={expensesByMonth}>
+          <LineChart data={expensesByMonth}>
             <XAxis 
               dataKey="month" 
               tickLine={false}
@@ -82,12 +82,14 @@ const ExpensesChart = () => {
               content={<ChartTooltipContent />}
               formatter={(value) => [formatCurrency(Number(value)), 'Expenses']}
             />
-            <Bar 
+            <Line 
+              type="monotone"
               dataKey="expenses" 
-              fill="var(--color-expenses)"
-              radius={[4, 4, 0, 0]}
+              stroke="var(--color-expenses)"
+              strokeWidth={3}
+              dot={{ fill: "var(--color-expenses)", strokeWidth: 2, r: 4 }}
             />
-          </BarChart>
+          </LineChart>
         </ChartContainer>
       </CardContent>
     </Card>
