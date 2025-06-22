@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -117,6 +116,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
   };
 
   const handleItemChange = (id: string, field: keyof InvoiceItem, value: string | number) => {
+    console.log('Updating item:', id, field, value);
     setItems(items.map(item => {
       if (item.id === id) {
         const updatedItem = { ...item, [field]: value };
@@ -128,6 +128,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
           );
         }
         
+        console.log('Updated item:', updatedItem);
         return updatedItem;
       }
       return item;
@@ -135,11 +136,24 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
   };
 
   const handleInventorySelect = (itemId: string, inventoryItemId: string) => {
+    console.log('Selecting inventory item:', itemId, inventoryItemId);
     const inventoryItem = inventory.find(item => item.id === inventoryItemId);
     if (inventoryItem) {
-      handleItemChange(itemId, 'inventory_id', inventoryItemId);
-      handleItemChange(itemId, 'description', inventoryItem.name);
-      handleItemChange(itemId, 'unit_price', inventoryItem.unit_price);
+      console.log('Found inventory item:', inventoryItem);
+      setItems(prevItems => prevItems.map(item => {
+        if (item.id === itemId) {
+          const updatedItem = {
+            ...item,
+            inventory_id: inventoryItemId,
+            description: inventoryItem.name,
+            unit_price: inventoryItem.unit_price,
+            line_total: calculateItemTotal(item.quantity, inventoryItem.unit_price)
+          };
+          console.log('Updated item with inventory:', updatedItem);
+          return updatedItem;
+        }
+        return item;
+      }));
     }
   };
 
@@ -439,15 +453,15 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
                       </div>
 
                       <div>
-                        <Label htmlFor={`unit_price-${item.id}`}>Unit Price (₦)</Label>
+                        <Label htmlFor={`unit_price-${item.id}`}>Unit Price (₦) *</Label>
                         <Input
                           id={`unit_price-${item.id}`}
                           type="number"
                           min="0"
                           step="0.01"
                           value={item.unit_price}
-                          readOnly
-                          className="bg-gray-50"
+                          onChange={(e) => handleItemChange(item.id, 'unit_price', parseFloat(e.target.value) || 0)}
+                          required
                         />
                       </div>
 
