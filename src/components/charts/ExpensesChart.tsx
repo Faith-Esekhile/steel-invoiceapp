@@ -39,7 +39,7 @@ const ExpensesChart = () => {
   // Get all unique categories
   const categories = Array.from(new Set(
     expenses.map(expense => expense.category || 'Other')
-  ));
+  )).slice(0, 6); // Limit to 6 categories for readability
   
   const colors = [
     '#3b82f6', '#ef4444', '#10b981', '#f59e0b', 
@@ -116,12 +116,17 @@ const ExpensesChart = () => {
                 type="monotone"
                 dataKey={category}
                 stroke={colors[index % colors.length]}
-                strokeWidth={3}
-                dot={false}
+                strokeWidth={2}
+                dot={{ 
+                  r: 4, 
+                  fill: colors[index % colors.length],
+                  strokeWidth: 2,
+                  stroke: '#ffffff'
+                }}
                 activeDot={{ 
-                  r: 5, 
+                  r: 6, 
                   stroke: colors[index % colors.length],
-                  strokeWidth: 3,
+                  strokeWidth: 2,
                   fill: '#ffffff',
                   filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.1))'
                 }}

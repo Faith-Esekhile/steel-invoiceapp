@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -28,11 +29,11 @@ type Invoice = Tables<'invoices'> & {
 
 interface InvoiceItem {
   id: string;
+  inventory_id: string;
   description: string;
   quantity: number;
   unit_price: number;
   line_total: number;
-  inventory_id?: string;
 }
 
 interface InvoiceModalProps {
@@ -61,7 +62,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
   });
 
   const [items, setItems] = useState<InvoiceItem[]>([
-    { id: '1', description: '', quantity: 1, unit_price: 0, line_total: 0 }
+    { id: '1', inventory_id: '', description: '', quantity: 1, unit_price: 0, line_total: 0 }
   ]);
 
   const { data: clients = [] } = useClients();
@@ -84,9 +85,10 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
         status: invoice.status as InvoiceStatus
       });
       
-      // For existing invoices, show a simple line item based on subtotal
+      // For existing invoices, show a simple line item
       setItems([{
         id: '1',
+        inventory_id: '',
         description: 'Steel fabrication services',
         quantity: 1,
         unit_price: invoice.subtotal,
@@ -102,7 +104,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
         notes: '',
         status: 'draft'
       });
-      setItems([{ id: '1', description: '', quantity: 1, unit_price: 0, line_total: 0 }]);
+      setItems([{ id: '1', inventory_id: '', description: '', quantity: 1, unit_price: 0, line_total: 0 }]);
     }
   }, [invoice, isOpen]);
 
@@ -135,21 +137,16 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
   const handleInventorySelect = (itemId: string, inventoryItemId: string) => {
     const inventoryItem = inventory.find(item => item.id === inventoryItemId);
     if (inventoryItem) {
+      handleItemChange(itemId, 'inventory_id', inventoryItemId);
       handleItemChange(itemId, 'description', inventoryItem.name);
       handleItemChange(itemId, 'unit_price', inventoryItem.unit_price);
-      
-      // Store inventory_id for quantity reduction
-      setItems(items.map(item => 
-        item.id === itemId 
-          ? { ...item, inventory_id: inventoryItemId }
-          : item
-      ));
     }
   };
 
   const addItem = () => {
     const newItem: InvoiceItem = {
       id: Date.now().toString(),
+      inventory_id: '',
       description: '',
       quantity: 1,
       unit_price: 0,
@@ -164,6 +161,15 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
     }
   };
 
+  const validateItems = () => {
+    for (const item of items) {
+      if (!item.inventory_id || !item.description || item.quantity <= 0 || item.unit_price <= 0) {
+        return false;
+      }
+    }
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -171,6 +177,15 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
       toast({
         title: "Error",
         description: "Please select a client",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!invoice && !validateItems()) {
+      toast({
+        title: "Error",
+        description: "Please select inventory items for all line items",
         variant: "destructive",
       });
       return;
@@ -190,29 +205,23 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
     };
 
     console.log('Final invoice data being submitted:', invoiceData);
-    console.log('Status being sent:', formData.status);
 
     try {
       let invoiceId: string;
 
       if (invoice) {
         // Update existing invoice
-        console.log('Updating invoice ID:', invoice.id, 'with data:', invoiceData);
-        
         const updatedInvoice = await updateInvoice.mutateAsync({ 
           id: invoice.id, 
           ...invoiceData
         });
-        
-        console.log('Invoice updated successfully:', updatedInvoice);
         invoiceId = invoice.id;
       } else {
         // Create new invoice
         const newInvoice = await createInvoice.mutateAsync(invoiceData);
-        console.log('New invoice created:', newInvoice);
         invoiceId = newInvoice.id;
         
-        // Create invoice items
+        // Create invoice items with inventory_id
         const invoiceItems = items.map(item => ({
           invoice_id: invoiceId,
           description: item.description,
@@ -223,7 +232,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
         
         await createInvoiceItems.mutateAsync(invoiceItems);
         
-        // Reduce inventory quantities for items that have inventory_id
+        // Reduce inventory quantities
         for (const item of items) {
           if (item.inventory_id && item.quantity > 0) {
             await updateInventoryQuantity.mutateAsync({
@@ -243,7 +252,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
       console.error('Save error:', error);
       toast({
         title: "Error",
-        description: "Failed to save invoice. Please check the status value.",
+        description: "Failed to save invoice",
         variant: "destructive",
       });
     }
@@ -255,6 +264,8 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
       currency: 'NGN'
     }).format(amount);
   };
+
+  const availableInventory = inventory.filter(item => item.quantity > 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -342,7 +353,6 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
             <Select 
               value={formData.status} 
               onValueChange={(value: InvoiceStatus) => {
-                console.log('Status being changed to:', value);
                 setFormData(prev => ({ ...prev, status: value }));
               }}
             >
@@ -362,12 +372,20 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
           {!invoice && (
             <div>
               <div className="flex justify-between items-center mb-4">
-                <Label className="text-lg font-semibold">Invoice Items</Label>
+                <Label className="text-lg font-semibold">Invoice Items *</Label>
                 <Button type="button" onClick={addItem} variant="outline" size="sm">
                   <Plus className="w-4 h-4 mr-2" />
                   Add Item
                 </Button>
               </div>
+
+              {availableInventory.length === 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                  <p className="text-yellow-800 text-sm">
+                    No inventory items available. Please add inventory items before creating an invoice.
+                  </p>
+                </div>
+              )}
 
               <div className="space-y-4">
                 {items.map((item, index) => (
@@ -389,30 +407,23 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="md:col-span-2">
-                        <Label htmlFor={`description-${item.id}`}>Description *</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            id={`description-${item.id}`}
-                            value={item.description}
-                            onChange={(e) => handleItemChange(item.id, 'description', e.target.value)}
-                            placeholder="Item description"
-                            required
-                          />
-                          {inventory.length > 0 && (
-                            <Select onValueChange={(value) => handleInventorySelect(item.id, value)}>
-                              <SelectTrigger className="w-48">
-                                <SelectValue placeholder="From inventory" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {inventory.map((inventoryItem) => (
-                                  <SelectItem key={inventoryItem.id} value={inventoryItem.id}>
-                                    {inventoryItem.name} - {formatCurrency(inventoryItem.unit_price)}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
-                        </div>
+                        <Label htmlFor={`inventory-${item.id}`}>Select Inventory Item *</Label>
+                        <Select 
+                          value={item.inventory_id} 
+                          onValueChange={(value) => handleInventorySelect(item.id, value)}
+                          required
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select inventory item" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableInventory.map((inventoryItem) => (
+                              <SelectItem key={inventoryItem.id} value={inventoryItem.id}>
+                                {inventoryItem.name} - {formatCurrency(inventoryItem.unit_price)} (Qty: {inventoryItem.quantity})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       <div>
@@ -428,15 +439,15 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
                       </div>
 
                       <div>
-                        <Label htmlFor={`unit_price-${item.id}`}>Unit Price (₦) *</Label>
+                        <Label htmlFor={`unit_price-${item.id}`}>Unit Price (₦)</Label>
                         <Input
                           id={`unit_price-${item.id}`}
                           type="number"
                           min="0"
                           step="0.01"
                           value={item.unit_price}
-                          onChange={(e) => handleItemChange(item.id, 'unit_price', parseFloat(e.target.value) || 0)}
-                          required
+                          readOnly
+                          className="bg-gray-50"
                         />
                       </div>
 
