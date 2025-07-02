@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ type Invoice = Tables<'invoices'> & {
     company_name: string;
     contact_name: string;
     email: string;
+    phone?: string;
     address?: string;
   };
 };
@@ -64,19 +64,384 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
           <head>
             <title>Invoice ${invoice.invoice_number}</title>
             <style>
-              body { font-family: Arial, sans-serif; margin: 20px; }
-              .invoice-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
-              .company-info { font-size: 18px; font-weight: bold; }
-              .invoice-details { text-align: right; }
-              table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-              th { background-color: #f2f2f2; }
-              .totals { text-align: right; margin-top: 20px; }
-              .bank-details { margin-top: 30px; padding: 15px; background-color: #f9f9f9; border-radius: 5px; }
+              @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+              
+              * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+              }
+              
+              body { 
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                margin: 0;
+                padding: 30px;
+                background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+                min-height: 100vh;
+                color: #1f2937;
+                line-height: 1.6;
+              }
+              
+              .invoice-container {
+                background: white;
+                border-radius: 16px;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+                overflow: hidden;
+                max-width: 800px;
+                margin: 0 auto;
+              }
+              
+              .invoice-header {
+                background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+                color: white;
+                padding: 40px;
+                position: relative;
+                overflow: hidden;
+              }
+              
+              .invoice-header::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                right: -20%;
+                width: 200px;
+                height: 200px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
+              }
+              
+              .invoice-header::after {
+                content: '';
+                position: absolute;
+                bottom: -30%;
+                left: -10%;
+                width: 150px;
+                height: 150px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 50%;
+              }
+              
+              .header-content {
+                position: relative;
+                z-index: 1;
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+              }
+              
+              .company-info h1 {
+                font-size: 32px;
+                font-weight: 800;
+                margin-bottom: 8px;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+              }
+              
+              .company-info p {
+                font-size: 16px;
+                opacity: 0.9;
+                margin-bottom: 4px;
+              }
+              
+              .invoice-title {
+                text-align: right;
+              }
+              
+              .invoice-title h2 {
+                font-size: 36px;
+                font-weight: 700;
+                margin-bottom: 8px;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+              }
+              
+              .invoice-title p {
+                font-size: 18px;
+                opacity: 0.9;
+              }
+              
+              .invoice-body {
+                padding: 40px;
+              }
+              
+              .invoice-details {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 40px;
+                margin-bottom: 40px;
+                padding: 30px;
+                background: #f8fafc;
+                border-radius: 12px;
+                border: 1px solid #e2e8f0;
+              }
+              
+              .bill-to h3, .invoice-info h3 {
+                color: #1E40AF;
+                font-size: 18px;
+                font-weight: 600;
+                margin-bottom: 16px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+              }
+              
+              .bill-to p, .invoice-info p {
+                margin-bottom: 8px;
+                color: #4b5563;
+              }
+              
+              .bill-to .company-name {
+                font-weight: 600;
+                color: #1f2937;
+                font-size: 16px;
+              }
+              
+              .invoice-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 30px 0;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+              }
+              
+              .invoice-table th {
+                background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+                color: white;
+                padding: 20px 16px;
+                text-align: left;
+                font-weight: 600;
+                font-size: 14px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+              }
+              
+              .invoice-table th:last-child {
+                text-align: right;
+              }
+              
+              .invoice-table td {
+                padding: 20px 16px;
+                border-bottom: 1px solid #e5e7eb;
+                color: #4b5563;
+              }
+              
+              .invoice-table td:last-child {
+                text-align: right;
+                font-weight: 600;
+                color: #1f2937;
+              }
+              
+              .invoice-table tr:hover {
+                background-color: #f9fafb;
+              }
+              
+              .invoice-total {
+                display: flex;
+                justify-content: flex-end;
+                margin: 30px 0;
+              }
+              
+              .total-section {
+                background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+                color: white;
+                padding: 25px 30px;
+                border-radius: 12px;
+                min-width: 250px;
+                text-align: center;
+                box-shadow: 0 10px 15px -3px rgba(30, 64, 175, 0.3);
+              }
+              
+              .total-section h3 {
+                font-size: 18px;
+                margin-bottom: 8px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                font-weight: 600;
+              }
+              
+              .total-amount {
+                font-size: 28px;
+                font-weight: 800;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+              }
+              
+              .payment-info {
+                background: #f0f9ff;
+                border: 2px solid #3b82f6;
+                border-radius: 12px;
+                padding: 30px;
+                margin: 40px 0;
+              }
+              
+              .payment-info h3 {
+                color: #1E40AF;
+                font-size: 20px;
+                font-weight: 700;
+                margin-bottom: 20px;
+                text-align: center;
+              }
+              
+              .bank-details {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+              }
+              
+              .bank-detail {
+                text-align: center;
+                padding: 15px;
+                background: white;
+                border-radius: 8px;
+                border: 1px solid #bfdbfe;
+              }
+              
+              .bank-detail .label {
+                font-size: 12px;
+                color: #6b7280;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 5px;
+                font-weight: 500;
+              }
+              
+              .bank-detail .value {
+                font-size: 16px;
+                font-weight: 600;
+                color: #1f2937;
+              }
+              
+              .notes-section {
+                margin-top: 40px;
+                padding: 25px;
+                background: #fffbeb;
+                border-left: 4px solid #f59e0b;
+                border-radius: 0 8px 8px 0;
+              }
+              
+              .notes-section h3 {
+                color: #92400e;
+                font-size: 16px;
+                font-weight: 600;
+                margin-bottom: 10px;
+              }
+              
+              .notes-section p {
+                color: #78350f;
+                line-height: 1.6;
+              }
+              
+              @media print {
+                body {
+                  background: white !important;
+                  padding: 0 !important;
+                }
+                
+                .invoice-container {
+                  box-shadow: none !important;
+                  border-radius: 0 !important;
+                }
+              }
             </style>
           </head>
           <body>
-            ${invoiceContent}
+            <div class="invoice-container">
+              <div class="invoice-header">
+                <div class="header-content">
+                  <div class="company-info">
+                    <h1>${companyInfo?.company_name || 'Marvellous Steel'}</h1>
+                    <p>${companyInfo?.tagline || 'Enterprise Solutions'}</p>
+                    ${companyInfo?.address ? `<p>${companyInfo.address}</p>` : ''}
+                    ${companyInfo?.phone ? `<p>${companyInfo.phone}</p>` : ''}
+                    ${companyInfo?.email ? `<p>${companyInfo.email}</p>` : ''}
+                  </div>
+                  <div class="invoice-title">
+                    <h2>INVOICE</h2>
+                    <p>#${invoice.invoice_number}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="invoice-body">
+                <div class="invoice-details">
+                  <div class="bill-to">
+                    <h3>Bill To</h3>
+                    <p class="company-name">${invoice.clients?.company_name}</p>
+                    <p>${invoice.clients?.contact_name}</p>
+                    <p>${invoice.clients?.email}</p>
+                    ${invoice.clients?.address ? `<p>${invoice.clients.address}</p>` : ''}
+                  </div>
+                  <div class="invoice-info">
+                    <h3>Invoice Details</h3>
+                    <p><strong>Issue Date:</strong> ${formatDate(invoice.issue_date)}</p>
+                    <p><strong>Due Date:</strong> ${formatDate(invoice.due_date)}</p>
+                    <p><strong>Status:</strong> ${invoice.status.toUpperCase()}</p>
+                  </div>
+                </div>
+                
+                <table class="invoice-table">
+                  <thead>
+                    <tr>
+                      <th>Description</th>
+                      <th>Qty</th>
+                      <th>Rate</th>
+                      <th>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${invoiceItems.length > 0 ? 
+                      invoiceItems.map(item => `
+                        <tr>
+                          <td>${item.description}</td>
+                          <td>${item.quantity}</td>
+                          <td>${formatCurrency(item.unit_price)}</td>
+                          <td>${formatCurrency(item.line_total)}</td>
+                        </tr>
+                      `).join('') : 
+                      `<tr>
+                        <td>Steel fabrication services</td>
+                        <td>1</td>
+                        <td>${formatCurrency(invoice.subtotal)}</td>
+                        <td>${formatCurrency(invoice.subtotal)}</td>
+                      </tr>`
+                    }
+                  </tbody>
+                </table>
+                
+                <div class="invoice-total">
+                  <div class="total-section">
+                    <h3>Total Amount</h3>
+                    <div class="total-amount">${formatCurrency(invoice.total_amount)}</div>
+                  </div>
+                </div>
+                
+                <div class="payment-info">
+                  <h3>Payment Information</h3>
+                  <div class="bank-details">
+                    <div class="bank-detail">
+                      <div class="label">Bank Name</div>
+                      <div class="value">${companyInfo?.bank_name || 'Access Bank Plc'}</div>
+                    </div>
+                    <div class="bank-detail">
+                      <div class="label">Account Name</div>
+                      <div class="value">${companyInfo?.account_name || 'Marvellous Steel Enterprise'}</div>
+                    </div>
+                    <div class="bank-detail">
+                      <div class="label">Account Number</div>
+                      <div class="value">${companyInfo?.account_number || '0123456789'}</div>
+                    </div>
+                    <div class="bank-detail">
+                      <div class="label">Sort Code</div>
+                      <div class="value">${companyInfo?.sort_code || '044150149'}</div>
+                    </div>
+                  </div>
+                </div>
+                
+                ${invoice.notes ? `
+                  <div class="notes-section">
+                    <h3>Notes</h3>
+                    <p>${invoice.notes}</p>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
           </body>
         </html>
       `);
@@ -85,21 +450,46 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
     }
   };
 
-  const handleSendInvoice = async () => {
-    try {
-      // Simulate sending email
-      await new Promise(resolve => setTimeout(resolve, 1000));
+  const handleSendWhatsApp = () => {
+    const clientPhone = invoice.clients?.phone;
+    
+    if (!clientPhone) {
       toast({
-        title: "Invoice Sent",
-        description: `Invoice ${invoice.invoice_number} has been sent to ${invoice.clients?.email}`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to send invoice",
+        title: "Phone Number Required",
+        description: "Client phone number is required to send via WhatsApp. Please update the client information.",
         variant: "destructive",
       });
+      return;
     }
+
+    // Clean phone number (remove spaces, dashes, etc.)
+    const cleanPhone = clientPhone.replace(/\D/g, '');
+    
+    // Create WhatsApp message
+    const message = `Hello ${invoice.clients?.contact_name || 'there'}!
+
+Your invoice is ready:
+
+Invoice #: ${invoice.invoice_number}
+Amount: ${formatCurrency(invoice.total_amount)}
+Due Date: ${formatDate(invoice.due_date)}
+
+Company: ${companyInfo?.company_name || 'Marvellous Steel'}
+${companyInfo?.phone ? `Phone: ${companyInfo.phone}` : ''}
+${companyInfo?.email ? `Email: ${companyInfo.email}` : ''}
+
+Thank you for your business!`;
+
+    // Create WhatsApp URL
+    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+    
+    // Open WhatsApp
+    window.open(whatsappUrl, '_blank');
+    
+    toast({
+      title: "WhatsApp Opened",
+      description: `Invoice details sent to WhatsApp for ${invoice.clients?.contact_name}`,
+    });
   };
 
   return (
@@ -126,9 +516,9 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
             <Download className="w-4 h-4 mr-2" />
             Download PDF
           </Button>
-          <Button onClick={handleSendInvoice}>
+          <Button onClick={handleSendWhatsApp} className="bg-green-600 hover:bg-green-700">
             <Send className="w-4 h-4 mr-2" />
-            Send Invoice
+            Send via WhatsApp
           </Button>
         </div>
       </div>
