@@ -7,7 +7,6 @@ import {
   FileText, 
   Package, 
   Receipt, 
-  TrendingUp,
   Settings,
   Warehouse
 } from 'lucide-react';
@@ -22,7 +21,6 @@ const Navigation = () => {
     { path: '/inventory', icon: Package, label: 'Inventory' },
     { path: '/warehouses', icon: Warehouse, label: 'Warehouses' },
     { path: '/expenses', icon: Receipt, label: 'Expenses' },
-    { path: '/profit', icon: TrendingUp, label: 'Profit & Loss' },
     { path: '/settings', icon: Settings, label: 'Settings' },
   ];
 

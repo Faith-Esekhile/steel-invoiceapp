@@ -15,7 +15,6 @@ import InvoiceView from "@/components/InvoiceView";
 import Inventory from "@/components/Inventory";
 import WarehouseManager from "@/components/WarehouseManager";
 import CompanyExpenses from "@/components/CompanyExpenses";
-import Profit from "@/components/Profit";
 import Settings from "@/components/Settings";
 import DatabaseManager from "@/components/DatabaseManager";
 import AuthPage from "@/components/auth/AuthPage";
@@ -48,7 +47,6 @@ const App = () => (
                         <Route path="/inventory" element={<Inventory />} />
                         <Route path="/warehouses" element={<WarehouseManager />} />
                         <Route path="/expenses" element={<CompanyExpenses />} />
-                        <Route path="/profit" element={<Profit />} />
                         <Route path="/settings" element={<Settings />} />
                         <Route path="/database" element={<DatabaseManager />} />
                         <Route path="*" element={<NotFound />} />
