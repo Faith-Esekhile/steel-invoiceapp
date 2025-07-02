@@ -56,10 +56,114 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
     }
   };
 
+  const generatePDFContent = () => {
+    return `
+      <div class="invoice-header">
+        <div class="company-info">
+          <h1>${companyInfo?.company_name || 'Marvellous Steel'}</h1>
+          <p class="tagline">${companyInfo?.tagline || 'Enterprise Solutions'}</p>
+          ${companyInfo?.address ? `<p>${companyInfo.address}</p>` : ''}
+          ${companyInfo?.phone ? `<p>Phone: ${companyInfo.phone}</p>` : ''}
+          ${companyInfo?.email ? `<p>Email: ${companyInfo.email}</p>` : ''}
+        </div>
+        <div class="invoice-title">
+          <h2>INVOICE</h2>
+          <p class="invoice-number">#${invoice.invoice_number}</p>
+        </div>
+      </div>
+      
+      <div class="invoice-details">
+        <div class="detail-section">
+          <h3>BILL TO</h3>
+          <p class="company-name">${invoice.clients?.company_name}</p>
+          <p>${invoice.clients?.contact_name}</p>
+          <p>${invoice.clients?.email}</p>
+          ${invoice.clients?.phone ? `<p>Phone: ${invoice.clients.phone}</p>` : ''}
+          ${invoice.clients?.address ? `<p>${invoice.clients.address}</p>` : ''}
+        </div>
+        <div class="detail-section">
+          <h3>INVOICE DETAILS</h3>
+          <p><strong>Issue Date:</strong> ${formatDate(invoice.issue_date)}</p>
+          <p><strong>Due Date:</strong> ${formatDate(invoice.due_date)}</p>
+          <p><strong>Status:</strong> 
+            <span class="status-badge status-${invoice.status}">
+              ${invoice.status.toUpperCase()}
+            </span>
+          </p>
+        </div>
+      </div>
+      
+      <table class="invoice-table">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Qty</th>
+            <th>Rate</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${invoiceItems.length > 0 ? 
+            invoiceItems.map(item => `
+              <tr>
+                <td>${item.description}</td>
+                <td>${item.quantity}</td>
+                <td>${formatCurrency(item.unit_price)}</td>
+                <td>${formatCurrency(item.line_total)}</td>
+              </tr>
+            `).join('') : 
+            `<tr>
+              <td>Steel fabrication services</td>
+              <td>1</td>
+              <td>${formatCurrency(invoice.subtotal)}</td>
+              <td>${formatCurrency(invoice.subtotal)}</td>
+            </tr>`
+          }
+        </tbody>
+      </table>
+      
+      <div class="invoice-total">
+        <div class="total-section">
+          <h3>Total Amount</h3>
+          <div class="total-amount">${formatCurrency(invoice.total_amount)}</div>
+        </div>
+      </div>
+      
+      <div class="payment-info">
+        <h3>PAYMENT INFORMATION</h3>
+        <div class="bank-details">
+          <div class="bank-detail">
+            <div class="label">BANK NAME</div>
+            <div class="value">${companyInfo?.bank_name || 'Access Bank Plc'}</div>
+          </div>
+          <div class="bank-detail">
+            <div class="label">ACCOUNT NAME</div>
+            <div class="value">${companyInfo?.account_name || 'Marvellous Steel Enterprise'}</div>
+          </div>
+          <div class="bank-detail">
+            <div class="label">ACCOUNT NUMBER</div>
+            <div class="value">${companyInfo?.account_number || '0123456789'}</div>
+          </div>
+          <div class="bank-detail">
+            <div class="label">SORT CODE</div>
+            <div class="value">${companyInfo?.sort_code || '044150149'}</div>
+          </div>
+        </div>
+      </div>
+      
+      ${invoice.notes ? `
+        <div class="notes-section">
+          <h3>Notes</h3>
+          <p>${invoice.notes}</p>
+        </div>
+      ` : ''}
+    `;
+  };
+
   const handleDownloadPDF = () => {
     const printWindow = window.open('', '_blank');
     if (printWindow) {
-      const invoiceContent = document.getElementById('invoice-content')?.innerHTML || '';
+      const invoiceContent = generatePDFContent();
       printWindow.document.write(`
         <html>
           <head>
@@ -94,7 +198,6 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 padding: 32px;
               }
               
-              /* Header styling to match app */
               .invoice-header {
                 display: flex;
                 justify-content: space-between;
@@ -139,7 +242,6 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 color: #4b5563;
               }
               
-              /* Details grid to match app */
               .invoice-details {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
@@ -191,7 +293,6 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               .status-overdue { background: #fee2e2; color: #991b1b; }
               .status-draft { background: #f3f4f6; color: #374151; }
               
-              /* Table styling to match app */
               .invoice-table {
                 width: 100%;
                 border-collapse: collapse;
@@ -238,7 +339,6 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 background-color: #f3f4f6;
               }
               
-              /* Total section styling to match app */
               .invoice-total {
                 display: flex;
                 justify-content: flex-end;
@@ -268,7 +368,6 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 font-weight: 700;
               }
               
-              /* Payment info styling to match app */
               .payment-info {
                 background: #eff6ff;
                 border: 2px solid #2563eb;
@@ -316,7 +415,6 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 color: #1f2937;
               }
               
-              /* Notes section styling to match app */
               .notes-section {
                 margin-top: 32px;
                 padding: 20px;
@@ -474,117 +572,189 @@ Thank you for your business! 🙏`;
         </div>
       </div>
 
+      {/* Company Header Card */}
       <Card className="steel-card">
         <CardContent className="p-8">
-          <div id="invoice-content">
-            {/* Header */}
-            <div className="invoice-header">
-              <div className="company-info">
-                <h1>{companyInfo?.company_name || 'Marvellous Steel'}</h1>
-                <p className="tagline">{companyInfo?.tagline || 'Enterprise Solutions'}</p>
-                {companyInfo?.address && <p>{companyInfo.address}</p>}
-                {companyInfo?.phone && <p>Phone: {companyInfo.phone}</p>}
-                {companyInfo?.email && <p>Email: {companyInfo.email}</p>}
+          <div className="flex justify-between items-start mb-8 pb-6 border-b-2 border-blue-100">
+            <div>
+              <h1 className="text-3xl font-bold text-blue-700 mb-2">
+                {companyInfo?.company_name || 'Marvellous Steel'}
+              </h1>
+              <p className="text-gray-600 mb-4">
+                {companyInfo?.tagline || 'Enterprise Solutions'}
+              </p>
+              {companyInfo?.address && <p className="text-sm text-gray-600">{companyInfo.address}</p>}
+              {companyInfo?.phone && <p className="text-sm text-gray-600">Phone: {companyInfo.phone}</p>}
+              {companyInfo?.email && <p className="text-sm text-gray-600">Email: {companyInfo.email}</p>}
+            </div>
+            <div className="text-right">
+              <h2 className="text-4xl font-bold text-blue-700 mb-2">INVOICE</h2>
+              <p className="text-xl text-gray-600">#{invoice.invoice_number}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Invoice Details Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="steel-card">
+          <CardHeader className="bg-gray-50">
+            <CardTitle className="text-blue-700 text-lg font-semibold uppercase tracking-wide">
+              Bill To
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <h3 className="font-semibold text-lg text-gray-900 mb-2">
+              {invoice.clients?.company_name}
+            </h3>
+            <p className="text-gray-700 mb-1">{invoice.clients?.contact_name}</p>
+            <p className="text-gray-700 mb-1">{invoice.clients?.email}</p>
+            {invoice.clients?.phone && (
+              <p className="text-gray-700 mb-1">Phone: {invoice.clients.phone}</p>
+            )}
+            {invoice.clients?.address && (
+              <p className="text-gray-700">{invoice.clients.address}</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="steel-card">
+          <CardHeader className="bg-gray-50">
+            <CardTitle className="text-blue-700 text-lg font-semibold uppercase tracking-wide">
+              Invoice Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="font-medium text-gray-700">Issue Date:</span>
+                <span className="text-gray-900">{formatDate(invoice.issue_date)}</span>
               </div>
-              <div className="invoice-title">
-                <h2>INVOICE</h2>
-                <p className="invoice-number">#{invoice.invoice_number}</p>
+              <div className="flex justify-between">
+                <span className="font-medium text-gray-700">Due Date:</span>
+                <span className="text-gray-900">{formatDate(invoice.due_date)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-gray-700">Status:</span>
+                <Badge className={getStatusColor(invoice.status)}>
+                  {invoice.status.toUpperCase()}
+                </Badge>
               </div>
             </div>
-            
-            {/* Invoice Details */}
-            <div className="invoice-details">
-              <div className="detail-section">
-                <h3>BILL TO</h3>
-                <p className="company-name">{invoice.clients?.company_name}</p>
-                <p>{invoice.clients?.contact_name}</p>
-                <p>{invoice.clients?.email}</p>
-                {invoice.clients?.phone && <p>Phone: {invoice.clients.phone}</p>}
-                {invoice.clients?.address && <p>{invoice.clients.address}</p>}
-              </div>
-              <div className="detail-section">
-                <h3>INVOICE DETAILS</h3>
-                <p><strong>Issue Date:</strong> {formatDate(invoice.issue_date)}</p>
-                <p><strong>Due Date:</strong> {formatDate(invoice.due_date)}</p>
-                <p><strong>Status:</strong> 
-                  <span className={`status-badge status-${invoice.status}`}>
-                    {invoice.status.toUpperCase()}
-                  </span>
-                </p>
-              </div>
-            </div>
-            
-            {/* Items Table */}
-            <table className="invoice-table">
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Items Table Card */}
+      <Card className="steel-card">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full">
               <thead>
-                <tr>
-                  <th>Description</th>
-                  <th>Qty</th>
-                  <th>Rate</th>
-                  <th>Amount</th>
+                <tr className="bg-blue-700 text-white">
+                  <th className="px-6 py-4 text-left font-semibold">Description</th>
+                  <th className="px-6 py-4 text-left font-semibold">Qty</th>
+                  <th className="px-6 py-4 text-left font-semibold">Rate</th>
+                  <th className="px-6 py-4 text-right font-semibold">Amount</th>
                 </tr>
               </thead>
               <tbody>
                 {invoiceItems.length > 0 ? 
-                  invoiceItems.map(item => (
-                    <tr key={item.id}>
-                      <td>{item.description}</td>
-                      <td>{item.quantity}</td>
-                      <td>{formatCurrency(item.unit_price)}</td>
-                      <td>{formatCurrency(item.line_total)}</td>
+                  invoiceItems.map((item, index) => (
+                    <tr key={item.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                      <td className="px-6 py-4 text-gray-700">{item.description}</td>
+                      <td className="px-6 py-4 text-gray-700">{item.quantity}</td>
+                      <td className="px-6 py-4 text-gray-700">{formatCurrency(item.unit_price)}</td>
+                      <td className="px-6 py-4 text-right font-semibold text-gray-900">
+                        {formatCurrency(item.line_total)}
+                      </td>
                     </tr>
                   )) : 
-                  <tr>
-                    <td>Steel fabrication services</td>
-                    <td>1</td>
-                    <td>{formatCurrency(invoice.subtotal)}</td>
-                    <td>{formatCurrency(invoice.subtotal)}</td>
+                  <tr className="bg-gray-50">
+                    <td className="px-6 py-4 text-gray-700">Steel fabrication services</td>
+                    <td className="px-6 py-4 text-gray-700">1</td>
+                    <td className="px-6 py-4 text-gray-700">{formatCurrency(invoice.subtotal)}</td>
+                    <td className="px-6 py-4 text-right font-semibold text-gray-900">
+                      {formatCurrency(invoice.subtotal)}
+                    </td>
                   </tr>
                 }
               </tbody>
             </table>
-            
-            {/* Total */}
-            <div className="invoice-total">
-              <div className="total-section">
-                <h3>Total Amount</h3>
-                <div className="total-amount">{formatCurrency(invoice.total_amount)}</div>
-              </div>
-            </div>
-            
-            {/* Payment Information */}
-            <div className="payment-info">
-              <h3>PAYMENT INFORMATION</h3>
-              <div className="bank-details">
-                <div className="bank-detail">
-                  <div className="label">BANK NAME</div>
-                  <div className="value">{companyInfo?.bank_name || 'Access Bank Plc'}</div>
-                </div>
-                <div className="bank-detail">
-                  <div className="label">ACCOUNT NAME</div>
-                  <div className="value">{companyInfo?.account_name || 'Marvellous Steel Enterprise'}</div>
-                </div>
-                <div className="bank-detail">
-                  <div className="label">ACCOUNT NUMBER</div>
-                  <div className="value">{companyInfo?.account_number || '0123456789'}</div>
-                </div>
-                <div className="bank-detail">
-                  <div className="label">SORT CODE</div>
-                  <div className="value">{companyInfo?.sort_code || '044150149'}</div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Notes */}
-            {invoice.notes && (
-              <div className="notes-section">
-                <h3>Notes</h3>
-                <p>{invoice.notes}</p>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
+
+      {/* Total Card */}
+      <div className="flex justify-end">
+        <Card className="bg-blue-700 text-white min-w-80">
+          <CardContent className="p-8 text-center">
+            <h3 className="text-lg font-semibold mb-4 uppercase tracking-wide opacity-90">
+              Total Amount
+            </h3>
+            <div className="text-3xl font-bold">
+              {formatCurrency(invoice.total_amount)}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Payment Information Card */}
+      <Card className="steel-card border-2 border-blue-200 bg-blue-50">
+        <CardHeader className="text-center">
+          <CardTitle className="text-blue-700 text-xl font-bold uppercase tracking-wide">
+            Payment Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-center p-4 bg-white rounded-lg border border-blue-200">
+              <div className="text-xs text-gray-600 font-semibold uppercase tracking-wide mb-2">
+                Bank Name
+              </div>
+              <div className="font-bold text-gray-900">
+                {companyInfo?.bank_name || 'Access Bank Plc'}
+              </div>
+            </div>
+            <div className="text-center p-4 bg-white rounded-lg border border-blue-200">
+              <div className="text-xs text-gray-600 font-semibold uppercase tracking-wide mb-2">
+                Account Name
+              </div>
+              <div className="font-bold text-gray-900">
+                {companyInfo?.account_name || 'Marvellous Steel Enterprise'}
+              </div>
+            </div>
+            <div className="text-center p-4 bg-white rounded-lg border border-blue-200">
+              <div className="text-xs text-gray-600 font-semibold uppercase tracking-wide mb-2">
+                Account Number
+              </div>
+              <div className="font-bold text-gray-900">
+                {companyInfo?.account_number || '0123456789'}
+              </div>
+            </div>
+            <div className="text-center p-4 bg-white rounded-lg border border-blue-200">
+              <div className="text-xs text-gray-600 font-semibold uppercase tracking-wide mb-2">
+                Sort Code
+              </div>
+              <div className="font-bold text-gray-900">
+                {companyInfo?.sort_code || '044150149'}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Notes Card */}
+      {invoice.notes && (
+        <Card className="steel-card border-l-4 border-l-yellow-500 bg-yellow-50">
+          <CardHeader>
+            <CardTitle className="text-yellow-800 text-lg font-semibold">Notes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-yellow-700">{invoice.notes}</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
