@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -90,8 +91,10 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 overflow: hidden;
                 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
                 border: 1px solid #e5e7eb;
+                padding: 32px;
               }
               
+              /* Header styling to match app */
               .invoice-header {
                 display: flex;
                 justify-content: space-between;
@@ -111,6 +114,7 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               .company-info .tagline {
                 color: #6b7280;
                 margin-bottom: 16px;
+                font-size: 14px;
               }
               
               .company-info p {
@@ -135,6 +139,7 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 color: #4b5563;
               }
               
+              /* Details grid to match app */
               .invoice-details {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
@@ -146,6 +151,7 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 background: #f9fafb;
                 padding: 24px;
                 border-radius: 8px;
+                border: 1px solid #e5e7eb;
               }
               
               .detail-section h3 {
@@ -160,6 +166,7 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               .detail-section p {
                 margin-bottom: 8px;
                 color: #4b5563;
+                font-size: 14px;
               }
               
               .detail-section .company-name {
@@ -176,6 +183,7 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 font-size: 12px;
                 font-weight: 500;
                 text-transform: uppercase;
+                letter-spacing: 0.5px;
               }
               
               .status-paid { background: #dcfce7; color: #166534; }
@@ -183,11 +191,12 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               .status-overdue { background: #fee2e2; color: #991b1b; }
               .status-draft { background: #f3f4f6; color: #374151; }
               
+              /* Table styling to match app */
               .invoice-table {
                 width: 100%;
                 border-collapse: collapse;
                 margin: 32px 0;
-                border: 1px solid #e5e7eb;
+                border: 1px solid #d1d5db;
                 border-radius: 8px;
                 overflow: hidden;
               }
@@ -195,10 +204,11 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               .invoice-table th {
                 background: #1e40af;
                 color: white;
-                padding: 12px;
+                padding: 12px 16px;
                 text-align: left;
                 font-weight: 600;
                 font-size: 14px;
+                border: none;
               }
               
               .invoice-table th:last-child {
@@ -206,9 +216,12 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               }
               
               .invoice-table td {
-                padding: 12px;
+                padding: 12px 16px;
                 border-bottom: 1px solid #e5e7eb;
                 color: #4b5563;
+                font-size: 14px;
+                border-left: none;
+                border-right: none;
               }
               
               .invoice-table td:last-child {
@@ -217,10 +230,15 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 color: #1f2937;
               }
               
-              .invoice-table tr:nth-child(even) {
+              .invoice-table tbody tr:nth-child(even) {
                 background-color: #f9fafb;
               }
               
+              .invoice-table tbody tr:hover {
+                background-color: #f3f4f6;
+              }
+              
+              /* Total section styling to match app */
               .invoice-total {
                 display: flex;
                 justify-content: flex-end;
@@ -242,13 +260,15 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
                 opacity: 0.9;
+                font-weight: 600;
               }
               
               .total-amount {
-                font-size: 20px;
+                font-size: 24px;
                 font-weight: 700;
               }
               
+              /* Payment info styling to match app */
               .payment-info {
                 background: #eff6ff;
                 border: 2px solid #2563eb;
@@ -264,6 +284,7 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 margin-bottom: 16px;
                 text-align: center;
                 text-transform: uppercase;
+                letter-spacing: 0.5px;
               }
               
               .bank-details {
@@ -295,6 +316,7 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 color: #1f2937;
               }
               
+              /* Notes section styling to match app */
               .notes-section {
                 margin-top: 32px;
                 padding: 20px;
@@ -312,21 +334,30 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               
               .notes-section p {
                 color: #78350f;
+                font-size: 14px;
+                line-height: 1.5;
               }
               
               @media print {
-                body { background: white !important; padding: 10px !important; }
-                .invoice-container { box-shadow: none !important; }
+                body { 
+                  background: white !important; 
+                  padding: 10px !important; 
+                }
+                .invoice-container { 
+                  box-shadow: none !important; 
+                  border: none !important;
+                }
               }
               
-              @page { margin: 0.5in; size: A4; }
+              @page { 
+                margin: 0.5in; 
+                size: A4; 
+              }
             </style>
           </head>
           <body>
             <div class="invoice-container">
-              <div style="padding: 32px;">
-                ${invoiceContent}
-              </div>
+              ${invoiceContent}
             </div>
           </body>
         </html>
@@ -447,114 +478,108 @@ Thank you for your business! 🙏`;
         <CardContent className="p-8">
           <div id="invoice-content">
             {/* Header */}
-            <div className="flex justify-between items-start mb-8 pb-6 border-b-2 border-blue-200">
-              <div>
-                <h1 className="text-2xl font-bold text-blue-800 mb-2">
-                  {companyInfo?.company_name || 'Marvellous Steel'}
-                </h1>
-                <p className="text-gray-600 mb-4">{companyInfo?.tagline || 'Enterprise Solutions'}</p>
-                {companyInfo?.address && <p className="text-sm text-gray-600">{companyInfo.address}</p>}
-                {companyInfo?.phone && <p className="text-sm text-gray-600">Phone: {companyInfo.phone}</p>}
-                {companyInfo?.email && <p className="text-sm text-gray-600">Email: {companyInfo.email}</p>}
+            <div className="invoice-header">
+              <div className="company-info">
+                <h1>{companyInfo?.company_name || 'Marvellous Steel'}</h1>
+                <p className="tagline">{companyInfo?.tagline || 'Enterprise Solutions'}</p>
+                {companyInfo?.address && <p>{companyInfo.address}</p>}
+                {companyInfo?.phone && <p>Phone: {companyInfo.phone}</p>}
+                {companyInfo?.email && <p>Email: {companyInfo.email}</p>}
               </div>
-              <div className="text-right">
-                <h2 className="text-3xl font-bold text-blue-800 mb-2">INVOICE</h2>
-                <p className="text-lg text-gray-700">#{invoice.invoice_number}</p>
+              <div className="invoice-title">
+                <h2>INVOICE</h2>
+                <p className="invoice-number">#{invoice.invoice_number}</p>
               </div>
             </div>
             
             {/* Invoice Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-blue-800 mb-4">BILL TO</h3>
-                <p className="font-semibold text-gray-900 mb-2">{invoice.clients?.company_name}</p>
-                <p className="text-gray-700 mb-1">{invoice.clients?.contact_name}</p>
-                <p className="text-gray-700 mb-1">{invoice.clients?.email}</p>
-                {invoice.clients?.phone && <p className="text-gray-700 mb-1">Phone: {invoice.clients.phone}</p>}
-                {invoice.clients?.address && <p className="text-gray-700">{invoice.clients.address}</p>}
+            <div className="invoice-details">
+              <div className="detail-section">
+                <h3>BILL TO</h3>
+                <p className="company-name">{invoice.clients?.company_name}</p>
+                <p>{invoice.clients?.contact_name}</p>
+                <p>{invoice.clients?.email}</p>
+                {invoice.clients?.phone && <p>Phone: {invoice.clients.phone}</p>}
+                {invoice.clients?.address && <p>{invoice.clients.address}</p>}
               </div>
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <h3 className="text-lg font-semibold text-blue-800 mb-4">INVOICE DETAILS</h3>
-                <div className="space-y-2">
-                  <p className="text-gray-700"><strong>Issue Date:</strong> {formatDate(invoice.issue_date)}</p>
-                  <p className="text-gray-700"><strong>Due Date:</strong> {formatDate(invoice.due_date)}</p>
-                  <p className="text-gray-700"><strong>Status:</strong> 
-                    <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${getStatusColor(invoice.status)}`}>
-                      {invoice.status.toUpperCase()}
-                    </span>
-                  </p>
-                </div>
+              <div className="detail-section">
+                <h3>INVOICE DETAILS</h3>
+                <p><strong>Issue Date:</strong> {formatDate(invoice.issue_date)}</p>
+                <p><strong>Due Date:</strong> {formatDate(invoice.due_date)}</p>
+                <p><strong>Status:</strong> 
+                  <span className={`status-badge status-${invoice.status}`}>
+                    {invoice.status.toUpperCase()}
+                  </span>
+                </p>
               </div>
             </div>
             
             {/* Items Table */}
-            <div className="mb-8">
-              <table className="w-full border-collapse border border-gray-300">
-                <thead>
-                  <tr className="bg-blue-600 text-white">
-                    <th className="border border-gray-300 px-4 py-3 text-left">Description</th>
-                    <th className="border border-gray-300 px-4 py-3 text-center">Qty</th>
-                    <th className="border border-gray-300 px-4 py-3 text-right">Rate</th>
-                    <th className="border border-gray-300 px-4 py-3 text-right">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invoiceItems.length > 0 ? 
-                    invoiceItems.map(item => (
-                      <tr key={item.id} className="hover:bg-gray-50">
-                        <td className="border border-gray-300 px-4 py-3">{item.description}</td>
-                        <td className="border border-gray-300 px-4 py-3 text-center">{item.quantity}</td>
-                        <td className="border border-gray-300 px-4 py-3 text-right">{formatCurrency(item.unit_price)}</td>
-                        <td className="border border-gray-300 px-4 py-3 text-right font-semibold">{formatCurrency(item.line_total)}</td>
-                      </tr>
-                    )) : 
-                    <tr>
-                      <td className="border border-gray-300 px-4 py-3">Steel fabrication services</td>
-                      <td className="border border-gray-300 px-4 py-3 text-center">1</td>
-                      <td className="border border-gray-300 px-4 py-3 text-right">{formatCurrency(invoice.subtotal)}</td>
-                      <td className="border border-gray-300 px-4 py-3 text-right font-semibold">{formatCurrency(invoice.subtotal)}</td>
+            <table className="invoice-table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th>Qty</th>
+                  <th>Rate</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoiceItems.length > 0 ? 
+                  invoiceItems.map(item => (
+                    <tr key={item.id}>
+                      <td>{item.description}</td>
+                      <td>{item.quantity}</td>
+                      <td>{formatCurrency(item.unit_price)}</td>
+                      <td>{formatCurrency(item.line_total)}</td>
                     </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
+                  )) : 
+                  <tr>
+                    <td>Steel fabrication services</td>
+                    <td>1</td>
+                    <td>{formatCurrency(invoice.subtotal)}</td>
+                    <td>{formatCurrency(invoice.subtotal)}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
             
             {/* Total */}
-            <div className="flex justify-end mb-8">
-              <div className="bg-blue-600 text-white p-6 rounded-lg text-center min-w-[280px]">
-                <h3 className="text-sm font-semibold mb-2 uppercase tracking-wide">Total Amount</h3>
-                <div className="text-xl font-bold">{formatCurrency(invoice.total_amount)}</div>
+            <div className="invoice-total">
+              <div className="total-section">
+                <h3>Total Amount</h3>
+                <div className="total-amount">{formatCurrency(invoice.total_amount)}</div>
               </div>
             </div>
             
             {/* Payment Information */}
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-6">
-              <h3 className="text-lg font-bold text-blue-800 mb-4 text-center">PAYMENT INFORMATION</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white p-4 rounded border text-center">
-                  <div className="text-xs text-gray-600 font-semibold mb-2">BANK NAME</div>
-                  <div className="font-bold text-gray-900">{companyInfo?.bank_name || 'Access Bank Plc'}</div>
+            <div className="payment-info">
+              <h3>PAYMENT INFORMATION</h3>
+              <div className="bank-details">
+                <div className="bank-detail">
+                  <div className="label">BANK NAME</div>
+                  <div className="value">{companyInfo?.bank_name || 'Access Bank Plc'}</div>
                 </div>
-                <div className="bg-white p-4 rounded border text-center">
-                  <div className="text-xs text-gray-600 font-semibold mb-2">ACCOUNT NAME</div>
-                  <div className="font-bold text-gray-900">{companyInfo?.account_name || 'Marvellous Steel Enterprise'}</div>
+                <div className="bank-detail">
+                  <div className="label">ACCOUNT NAME</div>
+                  <div className="value">{companyInfo?.account_name || 'Marvellous Steel Enterprise'}</div>
                 </div>
-                <div className="bg-white p-4 rounded border text-center">
-                  <div className="text-xs text-gray-600 font-semibold mb-2">ACCOUNT NUMBER</div>
-                  <div className="font-bold text-gray-900">{companyInfo?.account_number || '0123456789'}</div>
+                <div className="bank-detail">
+                  <div className="label">ACCOUNT NUMBER</div>
+                  <div className="value">{companyInfo?.account_number || '0123456789'}</div>
                 </div>
-                <div className="bg-white p-4 rounded border text-center">
-                  <div className="text-xs text-gray-600 font-semibold mb-2">SORT CODE</div>
-                  <div className="font-bold text-gray-900">{companyInfo?.sort_code || '044150149'}</div>
+                <div className="bank-detail">
+                  <div className="label">SORT CODE</div>
+                  <div className="value">{companyInfo?.sort_code || '044150149'}</div>
                 </div>
               </div>
             </div>
             
             {/* Notes */}
             {invoice.notes && (
-              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-                <h3 className="text-lg font-semibold text-yellow-800 mb-2">Notes</h3>
-                <p className="text-yellow-700">{invoice.notes}</p>
+              <div className="notes-section">
+                <h3>Notes</h3>
+                <p>{invoice.notes}</p>
               </div>
             )}
           </div>
