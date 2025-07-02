@@ -271,6 +271,7 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 border-radius: 12px;
                 padding: 30px;
                 margin: 40px 0;
+                page-break-inside: avoid;
               }
               
               .payment-info h3 {
@@ -286,19 +287,24 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               .bank-details {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 20px;
+                gap: 16px;
+                max-width: 100%;
               }
               
               .bank-detail {
                 text-align: center;
-                padding: 16px;
+                padding: 16px 12px;
                 background: white;
                 border-radius: 8px;
                 border: 1px solid #bfdbfe;
+                min-height: 70px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
               }
               
               .bank-detail .label {
-                font-size: 12px;
+                font-size: 11px;
                 color: #6b7280;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
@@ -307,9 +313,10 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               }
               
               .bank-detail .value {
-                font-size: 15px;
+                font-size: 14px;
                 font-weight: 700;
                 color: #1f2937;
+                word-break: break-word;
               }
               
               .notes-section {
@@ -318,6 +325,7 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
                 border-left: 5px solid #f59e0b;
                 border-radius: 0 8px 8px 0;
+                page-break-inside: avoid;
               }
               
               .notes-section h3 {
@@ -363,6 +371,27 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                   -webkit-print-color-adjust: exact !important;
                   color-adjust: exact !important;
                 }
+                
+                .payment-info {
+                  background: #eff6ff !important;
+                  -webkit-print-color-adjust: exact !important;
+                  color-adjust: exact !important;
+                }
+                
+                .bank-details {
+                  grid-template-columns: 1fr 1fr !important;
+                  gap: 12px !important;
+                }
+                
+                .bank-detail {
+                  min-height: 60px !important;
+                  padding: 12px 8px !important;
+                }
+              }
+              
+              @page {
+                margin: 0.5in;
+                size: A4;
               }
             </style>
           </head>
@@ -479,7 +508,7 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
   const handleSendWhatsApp = () => {
     const clientPhone = invoice.clients?.phone;
     
-    console.log('Client phone from database:', clientPhone);
+    console.log('Raw client phone:', clientPhone);
     
     if (!clientPhone || clientPhone.trim() === '') {
       toast({
@@ -490,17 +519,37 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
       return;
     }
 
-    // Clean phone number (remove spaces, dashes, parentheses, plus signs, etc.)
-    let cleanPhone = clientPhone.replace(/[\s\-\(\)\+]/g, '');
+    // More flexible phone number cleaning and validation
+    let cleanPhone = clientPhone.replace(/[\s\-\(\)\+\.]/g, '');
     
-    // Remove leading zeros and add country code if needed
+    console.log('Phone after cleaning special chars:', cleanPhone);
+    
+    // Handle different phone number formats
     if (cleanPhone.startsWith('0')) {
-      cleanPhone = '234' + cleanPhone.substring(1); // Nigeria country code
-    } else if (!cleanPhone.startsWith('234') && cleanPhone.length === 10) {
+      // Nigerian number starting with 0
+      cleanPhone = '234' + cleanPhone.substring(1);
+    } else if (cleanPhone.startsWith('234')) {
+      // Already has country code
+      // Keep as is
+    } else if (cleanPhone.length === 10 && /^[0-9]+$/.test(cleanPhone)) {
+      // 10 digit number without country code
       cleanPhone = '234' + cleanPhone;
+    } else if (cleanPhone.length === 11 && cleanPhone.startsWith('0')) {
+      // 11 digit number starting with 0
+      cleanPhone = '234' + cleanPhone.substring(1);
     }
     
-    console.log('Cleaned phone number:', cleanPhone);
+    console.log('Final cleaned phone number:', cleanPhone);
+    
+    // Validate the final phone number
+    if (!/^234[0-9]{10}$/.test(cleanPhone)) {
+      toast({
+        title: "Invalid Phone Number",
+        description: `The phone number "${clientPhone}" appears to be invalid. Please check the client's phone number format.`,
+        variant: "destructive",
+      });
+      return;
+    }
     
     // Create WhatsApp message
     const message = `Hello ${invoice.clients?.contact_name || 'there'}!
@@ -527,7 +576,7 @@ Thank you for your business! 🙏`;
     
     toast({
       title: "WhatsApp Opened",
-      description: `Invoice details sent to WhatsApp for ${invoice.clients?.contact_name}`,
+      description: `Invoice details sent to WhatsApp for ${invoice.clients?.contact_name} (${cleanPhone})`,
     });
   };
 
