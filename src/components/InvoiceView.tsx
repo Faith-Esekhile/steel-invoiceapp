@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -76,78 +75,68 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               body { 
                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
                 margin: 0;
-                padding: 40px;
-                background: #f8fafc;
+                padding: 30px;
+                background: #ffffff;
                 color: #1f2937;
                 line-height: 1.6;
+                font-size: 14px;
               }
               
               .invoice-container {
                 background: white;
-                border-radius: 16px;
-                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-                overflow: hidden;
-                max-width: 900px;
+                max-width: 850px;
                 margin: 0 auto;
+                border: 2px solid #e5e7eb;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
               }
               
               .invoice-header {
-                background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+                background: linear-gradient(135deg, #1E40AF 0%, #2563EB 100%);
                 color: white;
-                padding: 50px;
+                padding: 40px;
                 position: relative;
-                overflow: hidden;
               }
               
               .invoice-header::before {
                 content: '';
                 position: absolute;
-                top: -50%;
-                right: -20%;
-                width: 300px;
-                height: 300px;
-                background: rgba(255, 255, 255, 0.08);
+                top: 0;
+                right: 0;
+                width: 100px;
+                height: 100px;
+                background: rgba(255, 255, 255, 0.1);
                 border-radius: 50%;
-              }
-              
-              .invoice-header::after {
-                content: '';
-                position: absolute;
-                bottom: -30%;
-                left: -10%;
-                width: 200px;
-                height: 200px;
-                background: rgba(255, 255, 255, 0.05);
-                border-radius: 50%;
+                transform: translate(30px, -30px);
               }
               
               .header-content {
-                position: relative;
-                z-index: 1;
                 display: flex;
                 justify-content: space-between;
                 align-items: flex-start;
+                position: relative;
+                z-index: 1;
               }
               
               .company-info h1 {
-                font-size: 36px;
+                font-size: 28px;
                 font-weight: 800;
-                margin-bottom: 12px;
-                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                margin-bottom: 8px;
                 letter-spacing: -0.5px;
               }
               
               .company-info .tagline {
-                font-size: 18px;
+                font-size: 16px;
                 opacity: 0.9;
-                margin-bottom: 20px;
+                margin-bottom: 16px;
                 font-weight: 500;
               }
               
               .company-info p {
-                font-size: 16px;
+                font-size: 14px;
                 opacity: 0.85;
-                margin-bottom: 6px;
+                margin-bottom: 4px;
               }
               
               .invoice-title {
@@ -155,86 +144,73 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               }
               
               .invoice-title h2 {
-                font-size: 42px;
+                font-size: 32px;
                 font-weight: 700;
-                margin-bottom: 12px;
-                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                margin-bottom: 8px;
                 letter-spacing: -0.5px;
               }
               
               .invoice-title .invoice-number {
-                font-size: 20px;
+                font-size: 18px;
                 opacity: 0.9;
                 font-weight: 600;
               }
               
               .invoice-body {
-                padding: 50px;
+                padding: 40px;
               }
               
               .invoice-details {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 50px;
-                margin-bottom: 50px;
-                padding: 40px;
-                background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-                border-radius: 16px;
+                gap: 40px;
+                margin-bottom: 40px;
+                padding: 30px;
+                background: #f8fafc;
+                border-radius: 12px;
                 border: 1px solid #e2e8f0;
               }
               
               .bill-to h3, .invoice-info h3 {
                 color: #1E40AF;
-                font-size: 20px;
+                font-size: 16px;
                 font-weight: 700;
-                margin-bottom: 20px;
+                margin-bottom: 16px;
                 text-transform: uppercase;
-                letter-spacing: 1px;
-                position: relative;
-              }
-              
-              .bill-to h3::after, .invoice-info h3::after {
-                content: '';
-                position: absolute;
-                bottom: -8px;
-                left: 0;
-                width: 40px;
-                height: 3px;
-                background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
-                border-radius: 2px;
+                letter-spacing: 0.8px;
               }
               
               .bill-to p, .invoice-info p {
-                margin-bottom: 10px;
+                margin-bottom: 8px;
                 color: #4b5563;
-                font-size: 16px;
+                font-size: 14px;
               }
               
               .bill-to .company-name {
                 font-weight: 700;
                 color: #1f2937;
-                font-size: 18px;
-                margin-bottom: 8px;
+                font-size: 16px;
+                margin-bottom: 6px;
               }
               
               .invoice-table {
                 width: 100%;
                 border-collapse: collapse;
-                margin: 40px 0;
-                border-radius: 16px;
+                margin: 30px 0;
+                border-radius: 12px;
                 overflow: hidden;
-                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                border: 1px solid #e5e7eb;
               }
               
               .invoice-table th {
-                background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+                background: linear-gradient(135deg, #1E40AF 0%, #2563EB 100%);
                 color: white;
-                padding: 25px 20px;
+                padding: 16px 12px;
                 text-align: left;
-                font-weight: 700;
-                font-size: 16px;
+                font-weight: 600;
+                font-size: 13px;
                 text-transform: uppercase;
-                letter-spacing: 0.8px;
+                letter-spacing: 0.5px;
               }
               
               .invoice-table th:last-child {
@@ -242,166 +218,150 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               }
               
               .invoice-table td {
-                padding: 25px 20px;
+                padding: 16px 12px;
                 border-bottom: 1px solid #e5e7eb;
                 color: #4b5563;
-                font-size: 16px;
+                font-size: 14px;
               }
               
               .invoice-table td:last-child {
                 text-align: right;
-                font-weight: 700;
+                font-weight: 600;
                 color: #1f2937;
-                font-size: 17px;
               }
               
               .invoice-table tr:nth-child(even) {
                 background-color: #f9fafb;
               }
               
-              .invoice-table tr:hover {
-                background-color: #f3f4f6;
-              }
-              
               .invoice-total {
                 display: flex;
                 justify-content: flex-end;
-                margin: 40px 0;
+                margin: 30px 0;
               }
               
               .total-section {
-                background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+                background: linear-gradient(135deg, #1E40AF 0%, #2563EB 100%);
                 color: white;
-                padding: 35px 40px;
-                border-radius: 16px;
-                min-width: 300px;
+                padding: 25px 35px;
+                border-radius: 12px;
+                min-width: 280px;
                 text-align: center;
-                box-shadow: 0 20px 25px -5px rgba(30, 64, 175, 0.2);
-                position: relative;
-                overflow: hidden;
-              }
-              
-              .total-section::before {
-                content: '';
-                position: absolute;
-                top: -50%;
-                right: -50%;
-                width: 200px;
-                height: 200px;
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 50%;
+                box-shadow: 0 4px 6px -1px rgba(30, 64, 175, 0.3);
               }
               
               .total-section h3 {
-                font-size: 20px;
-                margin-bottom: 15px;
+                font-size: 14px;
+                margin-bottom: 8px;
                 text-transform: uppercase;
-                letter-spacing: 1.5px;
-                font-weight: 700;
-                position: relative;
-                z-index: 1;
+                letter-spacing: 1px;
+                font-weight: 600;
+                opacity: 0.9;
               }
               
               .total-amount {
-                font-size: 36px;
+                font-size: 28px;
                 font-weight: 800;
-                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                position: relative;
-                z-index: 1;
+                letter-spacing: -0.5px;
               }
               
               .payment-info {
                 background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-                border: 2px solid #3b82f6;
-                border-radius: 16px;
-                padding: 40px;
-                margin: 50px 0;
-                position: relative;
-              }
-              
-              .payment-info::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 4px;
-                background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
-                border-radius: 16px 16px 0 0;
+                border: 2px solid #2563eb;
+                border-radius: 12px;
+                padding: 30px;
+                margin: 40px 0;
               }
               
               .payment-info h3 {
                 color: #1E40AF;
-                font-size: 24px;
+                font-size: 18px;
                 font-weight: 700;
-                margin-bottom: 30px;
+                margin-bottom: 20px;
                 text-align: center;
                 text-transform: uppercase;
-                letter-spacing: 1px;
+                letter-spacing: 0.5px;
               }
               
               .bank-details {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 25px;
+                gap: 20px;
               }
               
               .bank-detail {
                 text-align: center;
-                padding: 20px;
+                padding: 16px;
                 background: white;
-                border-radius: 12px;
+                border-radius: 8px;
                 border: 1px solid #bfdbfe;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
               }
               
               .bank-detail .label {
-                font-size: 14px;
+                font-size: 12px;
                 color: #6b7280;
                 text-transform: uppercase;
-                letter-spacing: 0.8px;
-                margin-bottom: 8px;
+                letter-spacing: 0.5px;
+                margin-bottom: 6px;
                 font-weight: 600;
               }
               
               .bank-detail .value {
-                font-size: 18px;
+                font-size: 15px;
                 font-weight: 700;
                 color: #1f2937;
               }
               
               .notes-section {
-                margin-top: 50px;
-                padding: 30px;
+                margin-top: 40px;
+                padding: 25px;
                 background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-                border-left: 6px solid #f59e0b;
-                border-radius: 0 12px 12px 0;
+                border-left: 5px solid #f59e0b;
+                border-radius: 0 8px 8px 0;
               }
               
               .notes-section h3 {
                 color: #92400e;
-                font-size: 18px;
+                font-size: 16px;
                 font-weight: 700;
-                margin-bottom: 15px;
+                margin-bottom: 12px;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
               }
               
               .notes-section p {
                 color: #78350f;
-                line-height: 1.8;
-                font-size: 16px;
+                line-height: 1.6;
+                font-size: 14px;
               }
               
               @media print {
                 body {
                   background: white !important;
-                  padding: 0 !important;
+                  padding: 10px !important;
                 }
                 
                 .invoice-container {
                   box-shadow: none !important;
-                  border-radius: 0 !important;
+                  border: 1px solid #000 !important;
+                }
+                
+                .invoice-header {
+                  background: #1E40AF !important;
+                  -webkit-print-color-adjust: exact !important;
+                  color-adjust: exact !important;
+                }
+                
+                .invoice-table th {
+                  background: #1E40AF !important;
+                  -webkit-print-color-adjust: exact !important;
+                  color-adjust: exact !important;
+                }
+                
+                .total-section {
+                  background: #1E40AF !important;
+                  -webkit-print-color-adjust: exact !important;
+                  color-adjust: exact !important;
                 }
               }
             </style>
