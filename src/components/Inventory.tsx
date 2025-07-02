@@ -11,7 +11,8 @@ import {
   Trash2, 
   Package
 } from 'lucide-react';
-import { useInventory, useCreateInventoryItem, useUpdateInventoryItem, useDeleteInventoryItem } from '@/hooks/useInventory';
+import { useInventory, useDeleteInventoryItem } from '@/hooks/useInventory';
+import { useWarehouseLocations } from '@/hooks/useWarehouseLocations';
 import { useToast } from '@/hooks/use-toast';
 import InventoryModal from '@/components/modals/InventoryModal';
 import { Tables } from '@/integrations/supabase/types';
@@ -24,8 +25,7 @@ const Inventory = () => {
   const [selectedItem, setSelectedItem] = useState<InventoryItem | undefined>();
   
   const { data: items = [], isLoading, error } = useInventory();
-  const createItem = useCreateInventoryItem();
-  const updateItem = useUpdateInventoryItem();
+  const { data: warehouseLocations = [] } = useWarehouseLocations();
   const deleteItem = useDeleteInventoryItem();
   const { toast } = useToast();
 
@@ -72,6 +72,12 @@ const Inventory = () => {
       case 'out_of_stock': return 'bg-red-100 text-red-700';
       default: return 'bg-gray-100 text-gray-700';
     }
+  };
+
+  const getWarehouseLocationName = (locationId: string | null) => {
+    if (!locationId) return '-';
+    const location = warehouseLocations.find(loc => loc.id === locationId);
+    return location ? location.name : '-';
   };
 
   const filteredItems = items.filter(item =>
@@ -162,6 +168,7 @@ const Inventory = () => {
                     <th className="text-left py-3 px-4 font-medium text-gray-600">Item Name</th>
                     <th className="text-left py-3 px-4 font-medium text-gray-600">Description</th>
                     <th className="text-left py-3 px-4 font-medium text-gray-600">Category</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-600">Warehouse</th>
                     <th className="text-right py-3 px-4 font-medium text-gray-600">Quantity</th>
                     <th className="text-right py-3 px-4 font-medium text-gray-600">Unit Price</th>
                     <th className="text-right py-3 px-4 font-medium text-gray-600">Total Value</th>
@@ -175,6 +182,7 @@ const Inventory = () => {
                       <td className="py-3 px-4 font-medium text-gray-900">{item.name}</td>
                       <td className="py-3 px-4 text-gray-700">{item.description || '-'}</td>
                       <td className="py-3 px-4 text-gray-700">{item.category || '-'}</td>
+                      <td className="py-3 px-4 text-gray-700">{getWarehouseLocationName(item.warehouse_location_id)}</td>
                       <td className="py-3 px-4 text-right font-medium text-gray-900">{item.quantity}</td>
                       <td className="py-3 px-4 text-right font-medium text-gray-900">{formatCurrency(item.unit_price)}</td>
                       <td className="py-3 px-4 text-right font-medium text-gray-900">

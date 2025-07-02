@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreateInventoryItem, useUpdateInventoryItem } from '@/hooks/useInventory';
+import { useWarehouseLocations } from '@/hooks/useWarehouseLocations';
 import { useToast } from '@/hooks/use-toast';
 import { Tables } from '@/integrations/supabase/types';
 
@@ -25,11 +26,13 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose, item }
     quantity: 0,
     unit_price: 0,
     category: '',
-    status: 'in_stock' as 'in_stock' | 'low_stock' | 'out_of_stock'
+    status: 'in_stock' as 'in_stock' | 'low_stock' | 'out_of_stock',
+    warehouse_location_id: ''
   });
 
   const createItem = useCreateInventoryItem();
   const updateItem = useUpdateInventoryItem();
+  const { data: warehouseLocations = [] } = useWarehouseLocations();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -40,7 +43,8 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose, item }
         quantity: item.quantity,
         unit_price: item.unit_price,
         category: item.category || '',
-        status: (item.status as 'in_stock' | 'low_stock' | 'out_of_stock') || 'in_stock'
+        status: (item.status as 'in_stock' | 'low_stock' | 'out_of_stock') || 'in_stock',
+        warehouse_location_id: item.warehouse_location_id || ''
       });
     } else {
       setFormData({
@@ -49,7 +53,8 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose, item }
         quantity: 0,
         unit_price: 0,
         category: '',
-        status: 'in_stock'
+        status: 'in_stock',
+        warehouse_location_id: ''
       });
     }
   }, [item, isOpen]);
@@ -117,6 +122,25 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose, item }
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
             />
+          </div>
+
+          <div>
+            <Label htmlFor="warehouse_location">Warehouse Location</Label>
+            <Select 
+              value={formData.warehouse_location_id} 
+              onValueChange={(value) => setFormData({ ...formData, warehouse_location_id: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select warehouse location" />
+              </SelectTrigger>
+              <SelectContent>
+                {warehouseLocations.map((location) => (
+                  <SelectItem key={location.id} value={location.id}>
+                    {location.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

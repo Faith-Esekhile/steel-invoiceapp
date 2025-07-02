@@ -150,6 +150,7 @@ export type Database = {
           unit_price: number
           updated_at: string
           user_id: string
+          warehouse_location_id: string | null
         }
         Insert: {
           category?: string | null
@@ -162,6 +163,7 @@ export type Database = {
           unit_price?: number
           updated_at?: string
           user_id: string
+          warehouse_location_id?: string | null
         }
         Update: {
           category?: string | null
@@ -174,8 +176,17 @@ export type Database = {
           unit_price?: number
           updated_at?: string
           user_id?: string
+          warehouse_location_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "inventory_warehouse_location_id_fkey"
+            columns: ["warehouse_location_id"]
+            isOneToOne: false
+            referencedRelation: "warehouse_locations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invoice_items: {
         Row: {
@@ -292,6 +303,33 @@ export type Database = {
           id?: string
           last_name?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      warehouse_locations: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

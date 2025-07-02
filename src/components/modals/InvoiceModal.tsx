@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Plus, Trash2 } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { useClients } from '@/hooks/useClients';
 import { useInventory } from '@/hooks/useInventory';
@@ -64,6 +65,10 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
     { id: '1', inventory_id: '', description: '', quantity: 1, unit_price: 0, line_total: 0 }
   ]);
 
+  const [clientSearch, setClientSearch] = useState('');
+  const [inventorySearch, setInventorySearch] = useState('');
+  const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
+
   const { data: clients = [] } = useClients();
   const { data: inventory = [] } = useInventory();
   const createInvoice = useCreateInvoice();
@@ -71,6 +76,23 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
   const createInvoiceItems = useCreateInvoiceItems();
   const updateInventoryQuantity = useUpdateInventoryQuantity();
   const { toast } = useToast();
+
+  // Filter clients based on search
+  const filteredClients = clients.filter(client =>
+    client.company_name.toLowerCase().includes(clientSearch.toLowerCase()) ||
+    client.contact_name.toLowerCase().includes(clientSearch.toLowerCase())
+  );
+
+  // Filter inventory based on search and availability
+  const getFilteredInventory = (searchTerm: string) => {
+    return inventory.filter(item => 
+      item.quantity > 0 && (
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (item.description && item.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (item.category && item.category.toLowerCase().includes(searchTerm.toLowerCase()))
+      )
+    );
+  };
 
   useEffect(() => {
     if (invoice && isOpen) {
@@ -279,8 +301,6 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
     }).format(amount);
   };
 
-  const availableInventory = inventory.filter(item => item.quantity > 0);
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -293,18 +313,63 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="client">Client *</Label>
-              <Select value={formData.client_id} onValueChange={(value) => setFormData({ ...formData, client_id: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a client" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.company_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="relative">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="Search clients..."
+                    value={clientSearch}
+                    onChange={(e) => {
+                      setClientSearch(e.target.value);
+                      setIsClientDropdownOpen(true);
+                    }}
+                    onFocus={() => setIsClientDropdownOpen(true)}
+                    className="pl-10"
+                  />
+                </div>
+                {isClientDropdownOpen && clientSearch && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                    {filteredClients.length > 0 ? (
+                      filteredClients.map((client) => (
+                        <div
+                          key={client.id}
+                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => {
+                            setFormData({ ...formData, client_id: client.id });
+                            setClientSearch(client.company_name);
+                            setIsClientDropdownOpen(false);
+                          }}
+                        >
+                          <div className="font-medium">{client.company_name}</div>
+                          <div className="text-sm text-gray-600">{client.contact_name}</div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-gray-500">No clients found</div>
+                    )}
+                  </div>
+                )}
+              </div>
+              {!clientSearch && (
+                <Select value={formData.client_id} onValueChange={(value) => {
+                  setFormData({ ...formData, client_id: value });
+                  const selectedClient = clients.find(c => c.id === value);
+                  if (selectedClient) {
+                    setClientSearch(selectedClient.company_name);
+                  }
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a client" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.company_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             <div>
@@ -393,7 +458,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
                 </Button>
               </div>
 
-              {availableInventory.length === 0 && (
+              {inventory.filter(item => item.quantity > 0).length === 0 && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
                   <p className="text-yellow-800 text-sm">
                     No inventory items available. Please add inventory items before creating an invoice.
@@ -422,22 +487,54 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="md:col-span-2">
                         <Label htmlFor={`inventory-${item.id}`}>Select Inventory Item *</Label>
-                        <Select 
-                          value={item.inventory_id} 
-                          onValueChange={(value) => handleInventorySelect(item.id, value)}
-                          required
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select inventory item" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {availableInventory.map((inventoryItem) => (
-                              <SelectItem key={inventoryItem.id} value={inventoryItem.id}>
-                                {inventoryItem.name} - {formatCurrency(inventoryItem.unit_price)} (Qty: {inventoryItem.quantity})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="relative">
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                            <Input
+                              placeholder="Search inventory items..."
+                              value={inventorySearch}
+                              onChange={(e) => setInventorySearch(e.target.value)}
+                              className="pl-10"
+                            />
+                          </div>
+                          {inventorySearch && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                              {getFilteredInventory(inventorySearch).map((inventoryItem) => (
+                                <div
+                                  key={inventoryItem.id}
+                                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => {
+                                    handleInventorySelect(item.id, inventoryItem.id);
+                                    setInventorySearch('');
+                                  }}
+                                >
+                                  <div className="font-medium">{inventoryItem.name}</div>
+                                  <div className="text-sm text-gray-600">
+                                    {formatCurrency(inventoryItem.unit_price)} - Qty: {inventoryItem.quantity}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        {!inventorySearch && !item.inventory_id && (
+                          <Select 
+                            value={item.inventory_id} 
+                            onValueChange={(value) => handleInventorySelect(item.id, value)}
+                            required
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select inventory item" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {inventory.filter(inventoryItem => inventoryItem.quantity > 0).map((inventoryItem) => (
+                                <SelectItem key={inventoryItem.id} value={inventoryItem.id}>
+                                  {inventoryItem.name} - {formatCurrency(inventoryItem.unit_price)} (Qty: {inventoryItem.quantity})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                       </div>
 
                       <div>
