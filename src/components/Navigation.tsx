@@ -8,11 +8,15 @@ import {
   Package, 
   Receipt, 
   Settings,
-  Warehouse
+  Warehouse,
+  LogOut
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 
 const Navigation = () => {
   const location = useLocation();
+  const { signOut } = useAuth();
 
   const navigationItems = [
     { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -24,9 +28,13 @@ const Navigation = () => {
     { path: '/settings', icon: Settings, label: 'Settings' },
   ];
 
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
   return (
-    <nav className="bg-white shadow-sm border-r">
-      <div className="px-4 py-6">
+    <nav className="bg-white shadow-sm border-r h-full flex flex-col">
+      <div className="px-4 py-6 flex-1">
         <h2 className="text-lg font-semibold text-gray-900 mb-6">Business Manager</h2>
         <ul className="space-y-2">
           {navigationItems.map((item) => {
@@ -50,6 +58,16 @@ const Navigation = () => {
             );
           })}
         </ul>
+      </div>
+      <div className="px-4 py-4 border-t">
+        <Button
+          onClick={handleSignOut}
+          variant="ghost"
+          className="w-full justify-start text-gray-600 hover:text-red-600 hover:bg-red-50"
+        >
+          <LogOut className="w-5 h-5 mr-3" />
+          Sign Out
+        </Button>
       </div>
     </nav>
   );
