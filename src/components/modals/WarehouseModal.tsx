@@ -71,17 +71,23 @@ const WarehouseModal: React.FC<WarehouseModalProps> = ({
 
   const onSubmit = async (data: WarehouseFormData) => {
     try {
+      // Ensure name is always provided
+      const warehouseData = {
+        name: data.name,
+        address: data.address || '',
+      };
+
       if (warehouse) {
         await updateWarehouse.mutateAsync({
           id: warehouse.id,
-          ...data,
+          ...warehouseData,
         });
         toast({
           title: "Success",
           description: "Warehouse location updated successfully",
         });
       } else {
-        await createWarehouse.mutateAsync(data);
+        await createWarehouse.mutateAsync(warehouseData);
         toast({
           title: "Success",
           description: "Warehouse location created successfully",

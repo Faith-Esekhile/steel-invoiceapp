@@ -42,10 +42,9 @@ const App = () => (
                     </div>
                     <div className="flex-1 overflow-auto">
                       <Routes>
-                        <Route path="/" element={<Dashboard />} />
+                        <Route path="/" element={<Index />} />
                         <Route path="/clients" element={<ClientManager />} />
                         <Route path="/invoices" element={<InvoiceManager />} />
-                        <Route path="/invoices/:id" element={<InvoiceView />} />
                         <Route path="/inventory" element={<Inventory />} />
                         <Route path="/warehouses" element={<WarehouseManager />} />
                         <Route path="/expenses" element={<CompanyExpenses />} />
