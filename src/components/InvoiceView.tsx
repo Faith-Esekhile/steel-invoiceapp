@@ -75,8 +75,8 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               body { 
                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
                 margin: 0;
-                padding: 30px;
-                background: #ffffff;
+                padding: 20px;
+                background: #f9fafb;
                 color: #1f2937;
                 line-height: 1.6;
                 font-size: 14px;
@@ -84,58 +84,38 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               
               .invoice-container {
                 background: white;
-                max-width: 850px;
+                max-width: 800px;
                 margin: 0 auto;
-                border: 2px solid #e5e7eb;
-                border-radius: 12px;
+                border-radius: 8px;
                 overflow: hidden;
                 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                border: 1px solid #e5e7eb;
               }
               
               .invoice-header {
-                background: linear-gradient(135deg, #1E40AF 0%, #2563EB 100%);
-                color: white;
-                padding: 40px;
-                position: relative;
-              }
-              
-              .invoice-header::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                right: 0;
-                width: 100px;
-                height: 100px;
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 50%;
-                transform: translate(30px, -30px);
-              }
-              
-              .header-content {
                 display: flex;
                 justify-content: space-between;
                 align-items: flex-start;
-                position: relative;
-                z-index: 1;
+                margin-bottom: 32px;
+                padding-bottom: 24px;
+                border-bottom: 2px solid #dbeafe;
               }
               
               .company-info h1 {
-                font-size: 28px;
-                font-weight: 800;
+                font-size: 24px;
+                font-weight: 700;
+                color: #1e40af;
                 margin-bottom: 8px;
-                letter-spacing: -0.5px;
               }
               
               .company-info .tagline {
-                font-size: 16px;
-                opacity: 0.9;
+                color: #6b7280;
                 margin-bottom: 16px;
-                font-weight: 500;
               }
               
               .company-info p {
                 font-size: 14px;
-                opacity: 0.85;
+                color: #6b7280;
                 margin-bottom: 4px;
               }
               
@@ -144,73 +124,81 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               }
               
               .invoice-title h2 {
-                font-size: 32px;
+                font-size: 28px;
                 font-weight: 700;
+                color: #1e40af;
                 margin-bottom: 8px;
-                letter-spacing: -0.5px;
               }
               
               .invoice-title .invoice-number {
                 font-size: 18px;
-                opacity: 0.9;
-                font-weight: 600;
-              }
-              
-              .invoice-body {
-                padding: 40px;
+                color: #4b5563;
               }
               
               .invoice-details {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
-                gap: 40px;
-                margin-bottom: 40px;
-                padding: 30px;
-                background: #f8fafc;
-                border-radius: 12px;
-                border: 1px solid #e2e8f0;
+                gap: 32px;
+                margin-bottom: 32px;
               }
               
-              .bill-to h3, .invoice-info h3 {
-                color: #1E40AF;
+              .detail-section {
+                background: #f9fafb;
+                padding: 24px;
+                border-radius: 8px;
+              }
+              
+              .detail-section h3 {
+                color: #1e40af;
                 font-size: 16px;
-                font-weight: 700;
+                font-weight: 600;
                 margin-bottom: 16px;
                 text-transform: uppercase;
-                letter-spacing: 0.8px;
+                letter-spacing: 0.5px;
               }
               
-              .bill-to p, .invoice-info p {
+              .detail-section p {
                 margin-bottom: 8px;
                 color: #4b5563;
-                font-size: 14px;
               }
               
-              .bill-to .company-name {
-                font-weight: 700;
+              .detail-section .company-name {
+                font-weight: 600;
                 color: #1f2937;
                 font-size: 16px;
-                margin-bottom: 6px;
+                margin-bottom: 8px;
               }
+              
+              .status-badge {
+                display: inline-block;
+                padding: 4px 12px;
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: 500;
+                text-transform: uppercase;
+              }
+              
+              .status-paid { background: #dcfce7; color: #166534; }
+              .status-pending { background: #fef3c7; color: #92400e; }
+              .status-overdue { background: #fee2e2; color: #991b1b; }
+              .status-draft { background: #f3f4f6; color: #374151; }
               
               .invoice-table {
                 width: 100%;
                 border-collapse: collapse;
-                margin: 30px 0;
-                border-radius: 12px;
-                overflow: hidden;
+                margin: 32px 0;
                 border: 1px solid #e5e7eb;
+                border-radius: 8px;
+                overflow: hidden;
               }
               
               .invoice-table th {
-                background: linear-gradient(135deg, #1E40AF 0%, #2563EB 100%);
+                background: #1e40af;
                 color: white;
-                padding: 16px 12px;
+                padding: 12px;
                 text-align: left;
                 font-weight: 600;
-                font-size: 13px;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
+                font-size: 14px;
               }
               
               .invoice-table th:last-child {
@@ -218,10 +206,9 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               }
               
               .invoice-table td {
-                padding: 16px 12px;
+                padding: 12px;
                 border-bottom: 1px solid #e5e7eb;
                 color: #4b5563;
-                font-size: 14px;
               }
               
               .invoice-table td:last-child {
@@ -237,78 +224,68 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               .invoice-total {
                 display: flex;
                 justify-content: flex-end;
-                margin: 30px 0;
+                margin: 32px 0;
               }
               
               .total-section {
-                background: linear-gradient(135deg, #1E40AF 0%, #2563EB 100%);
+                background: #1e40af;
                 color: white;
-                padding: 20px 30px;
-                border-radius: 12px;
+                padding: 24px;
+                border-radius: 8px;
                 min-width: 280px;
                 text-align: center;
-                box-shadow: 0 4px 6px -1px rgba(30, 64, 175, 0.3);
               }
               
               .total-section h3 {
-                font-size: 13px;
+                font-size: 14px;
                 margin-bottom: 8px;
                 text-transform: uppercase;
-                letter-spacing: 1px;
-                font-weight: 600;
+                letter-spacing: 0.5px;
                 opacity: 0.9;
               }
               
               .total-amount {
-                font-size: 16px;
+                font-size: 20px;
                 font-weight: 700;
-                letter-spacing: -0.3px;
               }
               
               .payment-info {
-                background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+                background: #eff6ff;
                 border: 2px solid #2563eb;
-                border-radius: 12px;
-                padding: 30px;
-                margin: 40px 0;
-                page-break-inside: avoid;
+                border-radius: 8px;
+                padding: 24px;
+                margin: 32px 0;
               }
               
               .payment-info h3 {
-                color: #1E40AF;
-                font-size: 18px;
+                color: #1e40af;
+                font-size: 16px;
                 font-weight: 700;
-                margin-bottom: 20px;
+                margin-bottom: 16px;
                 text-align: center;
                 text-transform: uppercase;
-                letter-spacing: 0.5px;
               }
               
               .bank-details {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 16px;
-                max-width: 100%;
               }
               
               .bank-detail {
                 text-align: center;
-                padding: 16px 12px;
+                padding: 16px;
                 background: white;
-                border-radius: 8px;
+                border-radius: 6px;
                 border: 1px solid #bfdbfe;
-                min-height: 70px;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
               }
               
               .bank-detail .label {
-                font-size: 11px;
+                font-size: 12px;
                 color: #6b7280;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
-                margin-bottom: 6px;
+                margin-bottom: 8px;
                 font-weight: 600;
               }
               
@@ -316,87 +293,41 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 font-size: 14px;
                 font-weight: 700;
                 color: #1f2937;
-                word-break: break-word;
               }
               
               .notes-section {
-                margin-top: 40px;
-                padding: 25px;
-                background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-                border-left: 5px solid #f59e0b;
-                border-radius: 0 8px 8px 0;
-                page-break-inside: avoid;
+                margin-top: 32px;
+                padding: 20px;
+                background: #fffbeb;
+                border-left: 4px solid #f59e0b;
+                border-radius: 0 6px 6px 0;
               }
               
               .notes-section h3 {
                 color: #92400e;
                 font-size: 16px;
-                font-weight: 700;
-                margin-bottom: 12px;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
+                font-weight: 600;
+                margin-bottom: 8px;
               }
               
               .notes-section p {
                 color: #78350f;
-                line-height: 1.6;
-                font-size: 14px;
               }
               
               @media print {
-                body {
-                  background: white !important;
-                  padding: 10px !important;
-                }
-                
-                .invoice-container {
-                  box-shadow: none !important;
-                  border: 1px solid #000 !important;
-                }
-                
-                .invoice-header {
-                  background: #1E40AF !important;
-                  -webkit-print-color-adjust: exact !important;
-                  color-adjust: exact !important;
-                }
-                
-                .invoice-table th {
-                  background: #1E40AF !important;
-                  -webkit-print-color-adjust: exact !important;
-                  color-adjust: exact !important;
-                }
-                
-                .total-section {
-                  background: #1E40AF !important;
-                  -webkit-print-color-adjust: exact !important;
-                  color-adjust: exact !important;
-                }
-                
-                .payment-info {
-                  background: #eff6ff !important;
-                  -webkit-print-color-adjust: exact !important;
-                  color-adjust: exact !important;
-                }
-                
-                .bank-details {
-                  grid-template-columns: 1fr 1fr !important;
-                  gap: 12px !important;
-                }
-                
-                .bank-detail {
-                  min-height: 60px !important;
-                  padding: 12px 8px !important;
-                }
+                body { background: white !important; padding: 10px !important; }
+                .invoice-container { box-shadow: none !important; }
               }
               
-              @page {
-                margin: 0.5in;
-                size: A4;
-              }
+              @page { margin: 0.5in; size: A4; }
             </style>
           </head>
           <body>
-            ${invoiceContent}
+            <div class="invoice-container">
+              <div style="padding: 32px;">
+                ${invoiceContent}
+              </div>
+            </div>
           </body>
         </html>
       `);
@@ -408,7 +339,7 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
   const handleSendWhatsApp = () => {
     const clientPhone = invoice.clients?.phone;
     
-    console.log('Raw client phone:', clientPhone);
+    console.log('Client phone from database:', clientPhone);
     
     if (!clientPhone || clientPhone.trim() === '') {
       toast({
@@ -419,33 +350,34 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
       return;
     }
 
-    // More flexible phone number cleaning and validation  
+    // Clean and format the phone number
     let cleanPhone = clientPhone.replace(/[\s\-\(\)\+\.]/g, '');
     
-    console.log('Phone after cleaning special chars:', cleanPhone);
+    console.log('Phone after removing special characters:', cleanPhone);
     
-    // Handle different phone number formats
-    if (cleanPhone.startsWith('0')) {
-      // Nigerian number starting with 0
+    // Handle different Nigerian phone number formats
+    if (cleanPhone.startsWith('0') && cleanPhone.length === 11) {
+      // Nigerian number starting with 0 (e.g., 08012345678)
       cleanPhone = '234' + cleanPhone.substring(1);
     } else if (cleanPhone.startsWith('234')) {
-      // Already has country code
+      // Already has country code (e.g., 2348012345678)
       // Keep as is
-    } else if (cleanPhone.length === 10 && /^[0-9]+$/.test(cleanPhone)) {
-      // 10 digit number without country code
+    } else if (cleanPhone.length === 10 && /^[78][01]/.test(cleanPhone)) {
+      // 10 digit number starting with 7 or 8 (e.g., 8012345678)
       cleanPhone = '234' + cleanPhone;
-    } else if (cleanPhone.length === 11 && cleanPhone.startsWith('0')) {
-      // 11 digit number starting with 0
+    } else if (cleanPhone.length === 11 && /^[78][01]/.test(cleanPhone.substring(1))) {
+      // 11 digit number where second digit starts with 7 or 8
       cleanPhone = '234' + cleanPhone.substring(1);
     }
     
-    console.log('Final cleaned phone number:', cleanPhone);
+    console.log('Final formatted phone number:', cleanPhone);
     
-    // Validate the final phone number
+    // Basic validation - should be 234 followed by 10 digits
     if (!/^234[0-9]{10}$/.test(cleanPhone)) {
+      console.log('Phone validation failed for:', cleanPhone);
       toast({
-        title: "Invalid Phone Number",
-        description: `The phone number "${clientPhone}" appears to be invalid. Please check the client's phone number format.`,
+        title: "Invalid Phone Number Format",
+        description: `Unable to format phone number "${clientPhone}". Please ensure it's a valid Nigerian number (e.g., 08012345678 or +2348012345678).`,
         variant: "destructive",
       });
       return;
@@ -469,14 +401,14 @@ Thank you for your business! 🙏`;
     // Create WhatsApp URL
     const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
     
-    console.log('WhatsApp URL:', whatsappUrl);
+    console.log('Opening WhatsApp URL:', whatsappUrl);
     
     // Open WhatsApp
     window.open(whatsappUrl, '_blank');
     
     toast({
       title: "WhatsApp Opened",
-      description: `Invoice details sent to WhatsApp for ${invoice.clients?.contact_name} (${cleanPhone})`,
+      description: `Invoice details sent to WhatsApp for ${invoice.clients?.contact_name} (+${cleanPhone})`,
     });
   };
 
@@ -591,7 +523,7 @@ Thank you for your business! 🙏`;
             <div className="flex justify-end mb-8">
               <div className="bg-blue-600 text-white p-6 rounded-lg text-center min-w-[280px]">
                 <h3 className="text-sm font-semibold mb-2 uppercase tracking-wide">Total Amount</h3>
-                <div className="text-2xl font-bold">{formatCurrency(invoice.total_amount)}</div>
+                <div className="text-xl font-bold">{formatCurrency(invoice.total_amount)}</div>
               </div>
             </div>
             
