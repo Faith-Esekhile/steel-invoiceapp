@@ -374,6 +374,7 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 border-radius: 8px;
                 padding: 24px;
                 margin: 32px 0;
+                page-break-inside: avoid;
               }
               
               .payment-info h3 {
@@ -387,17 +388,19 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               }
               
               .bank-details {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 16px;
+                display: block;
               }
               
               .bank-detail {
-                text-align: center;
-                padding: 16px;
-                background: white;
-                border-radius: 6px;
-                border: 1px solid #bfdbfe;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 0;
+                border-bottom: 1px solid #bfdbfe;
+              }
+              
+              .bank-detail:last-child {
+                border-bottom: none;
               }
               
               .bank-detail .label {
@@ -405,14 +408,16 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 color: #6b7280;
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
-                margin-bottom: 8px;
                 font-weight: 600;
+                flex: 1;
               }
               
               .bank-detail .value {
                 font-size: 14px;
                 font-weight: 700;
                 color: #1f2937;
+                text-align: right;
+                flex: 2;
               }
               
               .notes-section {
@@ -421,6 +426,7 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 background: #fffbeb;
                 border-left: 4px solid #f59e0b;
                 border-radius: 0 6px 6px 0;
+                page-break-inside: avoid;
               }
               
               .notes-section h3 {
@@ -444,6 +450,12 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                 .invoice-container { 
                   box-shadow: none !important; 
                   border: none !important;
+                }
+                .payment-info {
+                  page-break-inside: avoid !important;
+                }
+                .notes-section {
+                  page-break-inside: avoid !important;
                 }
               }
               
