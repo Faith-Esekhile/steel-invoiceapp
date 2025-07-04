@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -66,7 +67,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
   ]);
 
   const [clientSearch, setClientSearch] = useState('');
-  const [inventorySearch, setInventorySearch] = useState('');
+  const [inventorySearches, setInventorySearches] = useState<Record<string, string>>({});
   const [isClientDropdownOpen, setIsClientDropdownOpen] = useState(false);
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
 
@@ -128,6 +129,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
         status: 'draft'
       });
       setItems([{ id: '1', inventory_id: '', description: '', quantity: 1, unit_price: 0, line_total: 0 }]);
+      setInventorySearches({});
     }
   }, [invoice, isOpen]);
 
@@ -204,6 +206,12 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
         }
         return item;
       }));
+      
+      // Clear the search for this item
+      setInventorySearches(prev => ({
+        ...prev,
+        [itemId]: ''
+      }));
     }
   };
 
@@ -222,6 +230,12 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
   const removeItem = (id: string) => {
     if (items.length > 1) {
       setItems(items.filter(item => item.id !== id));
+      // Remove search state for this item
+      setInventorySearches(prev => {
+        const newSearches = { ...prev };
+        delete newSearches[id];
+        return newSearches;
+      });
     }
   };
 
@@ -551,37 +565,72 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="md:col-span-2">
                           <Label htmlFor={`inventory-${item.id}`}>Select Inventory Item *</Label>
-                          <div className="relative">
-                            <div className="relative">
-                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                              <Input
-                                placeholder="Search inventory items..."
-                                value={inventorySearch}
-                                onChange={(e) => setInventorySearch(e.target.value)}
-                                className="pl-10"
-                              />
-                            </div>
-                            {inventorySearch && (
-                              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
-                                {getFilteredInventory(inventorySearch).map((inventoryItem) => (
-                                  <div
-                                    key={inventoryItem.id}
-                                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                                    onClick={() => {
-                                      handleInventorySelect(item.id, inventoryItem.id);
-                                      setInventorySearch('');
-                                    }}
-                                  >
-                                    <div className="font-medium">{inventoryItem.name}</div>
-                                    <div className="text-sm text-gray-600">
-                                      {formatCurrency(inventoryItem.unit_price)} - Qty: {inventoryItem.quantity}
-                                    </div>
+                          
+                          {/* Show selected item if one is chosen */}
+                          {item.inventory_id && item.description ? (
+                            <div className="border rounded-md p-4 bg-gray-50">
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  <div className="font-medium">{item.description}</div>
+                                  <div className="text-sm text-gray-600">
+                                    {formatCurrency(item.unit_price)} - Available: {
+                                      inventory.find(inv => inv.id === item.inventory_id)?.quantity || 0
+                                    }
                                   </div>
-                                ))}
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setItems(prevItems => prevItems.map(prevItem => 
+                                      prevItem.id === item.id 
+                                        ? { ...prevItem, inventory_id: '', description: '', unit_price: 0, line_total: 0 }
+                                        : prevItem
+                                    ));
+                                  }}
+                                >
+                                  Change Item
+                                </Button>
                               </div>
-                            )}
-                          </div>
-                          {!inventorySearch && !item.inventory_id && (
+                            </div>
+                          ) : (
+                            <div className="relative">
+                              <div className="relative">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                                <Input
+                                  placeholder="Search inventory items..."
+                                  value={inventorySearches[item.id] || ''}
+                                  onChange={(e) => setInventorySearches(prev => ({
+                                    ...prev,
+                                    [item.id]: e.target.value
+                                  }))}
+                                  className="pl-10"
+                                />
+                              </div>
+                              {inventorySearches[item.id] && (
+                                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                                  {getFilteredInventory(inventorySearches[item.id]).map((inventoryItem) => (
+                                    <div
+                                      key={inventoryItem.id}
+                                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                                      onClick={() => {
+                                        handleInventorySelect(item.id, inventoryItem.id);
+                                      }}
+                                    >
+                                      <div className="font-medium">{inventoryItem.name}</div>
+                                      <div className="text-sm text-gray-600">
+                                        {formatCurrency(inventoryItem.unit_price)} - Qty: {inventoryItem.quantity}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Fallback select dropdown */}
+                          {!item.inventory_id && !inventorySearches[item.id] && (
                             <Select 
                               value={item.inventory_id} 
                               onValueChange={(value) => handleInventorySelect(item.id, value)}
@@ -607,10 +656,16 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
                             id={`quantity-${item.id}`}
                             type="number"
                             min="1"
+                            max={inventory.find(inv => inv.id === item.inventory_id)?.quantity || 999}
                             value={item.quantity}
                             onChange={(e) => handleItemChange(item.id, 'quantity', parseInt(e.target.value) || 1)}
                             required
                           />
+                          {item.inventory_id && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              Available: {inventory.find(inv => inv.id === item.inventory_id)?.quantity || 0}
+                            </div>
+                          )}
                         </div>
 
                         <div>
