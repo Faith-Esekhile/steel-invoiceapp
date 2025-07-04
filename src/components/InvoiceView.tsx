@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -61,7 +60,7 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
       <div class="invoice-header">
         <div class="company-info">
           <h1>${companyInfo?.company_name || 'Marvellous Steel'}</h1>
-          <p class="tagline">${companyInfo?.tagline || 'Enterprise Solutions'}</p>
+          <p class="tagline">${companyInfo?.tagline || 'Steel Manufacturing & Fabrication'}</p>
           ${companyInfo?.address ? `<p>${companyInfo.address}</p>` : ''}
           ${companyInfo?.phone ? `<p>Phone: ${companyInfo.phone}</p>` : ''}
           ${companyInfo?.email ? `<p>Email: ${companyInfo.email}</p>` : ''}
@@ -593,7 +592,7 @@ Thank you for your business! 🙏`;
                 {companyInfo?.company_name || 'Marvellous Steel'}
               </h1>
               <p className="text-gray-600 mb-4">
-                {companyInfo?.tagline || 'Enterprise Solutions'}
+                {companyInfo?.tagline || 'Steel Manufacturing & Fabrication'}
               </p>
               {companyInfo?.address && <p className="text-sm text-gray-600">{companyInfo.address}</p>}
               {companyInfo?.phone && <p className="text-sm text-gray-600">Phone: {companyInfo.phone}</p>}

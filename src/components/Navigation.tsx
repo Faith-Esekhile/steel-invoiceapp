@@ -35,7 +35,7 @@ const Navigation = () => {
   return (
     <nav className="bg-white shadow-sm border-r h-full flex flex-col">
       <div className="px-4 py-6 flex-1">
-        <h2 className="text-lg font-semibold text-gray-900 mb-6">Business Manager</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-6">Steel Forge</h2>
         <ul className="space-y-2">
           {navigationItems.map((item) => {
             const Icon = item.icon;
