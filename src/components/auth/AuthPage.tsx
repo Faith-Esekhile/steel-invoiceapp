@@ -71,8 +71,8 @@ const AuthPage = () => {
               <span className="text-white font-bold text-lg">MS</span>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Marvellous Steel</h1>
-              <p className="text-sm text-steel-600">Enterprise Solutions</p>
+              <h1 className="text-2xl font-bold text-gray-900">Marvellous Steel Enterprise</h1>
+              <p className="text-sm text-steel-600">Steel Manufacturing & Fabrication</p>
             </div>
           </div>
         </div>
