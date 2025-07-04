@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, Download, Print } from 'lucide-react';
+import { ArrowLeft, Edit, Download, Printer } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -96,7 +96,7 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
         
         <div className="flex gap-2">
           <Button variant="outline" onClick={handlePrint} className="flex items-center gap-2">
-            <Print className="w-4 h-4" />
+            <Printer className="w-4 h-4" />
             Print
           </Button>
           <Button variant="outline" onClick={handleDownload} className="flex items-center gap-2">
