@@ -210,7 +210,7 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
 
       <div class="footer">
         <p>Thank you for your business!</p>
-        <p>${companyInfo?.footer_text || 'Marvellous Steel Enterprise'}</p>
+        <p>${companyInfo?.company_name || 'Marvellous Steel Enterprise'}</p>
       </div>
     </body>
     </html>
