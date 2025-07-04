@@ -1,373 +1,244 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { ArrowLeft, Edit, Download, Print } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { format } from 'date-fns';
-import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { Tables } from '@/integrations/supabase/types';
 
-type Invoice = Tables<'invoices'>;
-type Client = Tables<'clients'>;
-type InvoiceItem = Tables<'invoice_items'>;
-type CompanyInfo = Tables<'company_info'>;
+type Invoice = Tables<'invoices'> & {
+  clients?: {
+    id: string;
+    company_name: string;
+    contact_name: string;
+    email: string;
+    address: string | null;
+  };
+};
 
 interface InvoiceViewProps {
-  invoice: Invoice & {
-    clients?: Client;
-  };
+  invoice: Invoice;
   onBack: () => void;
   onEdit: () => void;
 }
 
 const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) => {
-  const { toast } = useToast();
+  const { user } = useAuth();
 
-  const { data: client, isLoading: isClientLoading, error: clientError } = useQuery({
-    queryKey: ['client', invoice.client_id],
+  // Fetch company info
+  const { data: companyInfo } = useQuery({
+    queryKey: ['company-info', user?.id],
     queryFn: async () => {
-      if (!invoice.client_id) return null;
-      const { data, error } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('id', invoice.client_id)
-        .single();
-
-      if (error) {
-        throw new Error(error.message);
-      }
-      return data;
-    },
-    enabled: !!invoice.client_id,
-  });
-
-  const { data: items, isLoading: isItemsLoading, error: itemsError } = useQuery({
-    queryKey: ['invoiceItems', invoice.id],
-    queryFn: async () => {
-      if (!invoice.id) return [];
-      const { data, error } = await supabase
-        .from('invoice_items')
-        .select('*')
-        .eq('invoice_id', invoice.id);
-
-      if (error) {
-        throw new Error(error.message);
-      }
-      return data;
-    },
-    enabled: !!invoice.id,
-  });
-
-  const { data: companyInfo, isLoading: isCompanyInfoLoading, error: companyInfoError } = useQuery({
-    queryKey: ['companyInfo'],
-    queryFn: async () => {
+      if (!user) throw new Error('User not authenticated');
+      
       const { data, error } = await supabase
         .from('company_info')
         .select('*')
+        .eq('user_id', user.id)
         .single();
-
-      if (error) {
-        throw new Error(error.message);
-      }
+      
+      if (error) throw error;
       return data;
-    }
+    },
+    enabled: !!user,
   });
 
-  const generatePrintableHTML = (invoice: Invoice, client: Client | null, items: InvoiceItem[], companyInfo: CompanyInfo) => {
-    return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Invoice ${invoice.invoice_number}</title>
-      <style>
-        body {
-          font-family: 'Arial', sans-serif;
-          margin: 0;
-          padding: 0;
-          background-color: #f4f4f4;
-        }
-        .invoice-container {
-          width: 80%;
-          margin: auto;
-          background: #fff;
-          padding: 20px;
-          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .invoice-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding-bottom: 20px;
-          border-bottom: 2px solid #ddd;
-        }
-        .company-info {
-          text-align: left;
-        }
-        .company-info h1 {
-          margin: 0;
-          color: #333;
-        }
-        .company-info p {
-          margin: 5px 0;
-          color: #666;
-        }
-        .invoice-details {
-          text-align: right;
-        }
-        .invoice-details h2 {
-          margin: 0;
-          color: #333;
-        }
-        .invoice-details p {
-          margin: 5px 0;
-          color: #666;
-        }
-        .invoice-body {
-          padding-top: 20px;
-        }
-        .items-table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-bottom: 20px;
-        }
-        .items-table th, .items-table td {
-          border: 1px solid #ddd;
-          padding: 8px;
-          text-align: left;
-        }
-        .items-table th {
-          background-color: #f4f4f4;
-        }
-        .total {
-          text-align: right;
-          font-size: 1.2em;
-          margin-top: 20px;
-        }
-        .footer {
-          text-align: center;
-          padding-top: 20px;
-          border-top: 2px solid #ddd;
-          color: #666;
-        }
-        .tagline {
-          font-style: italic;
-          color: #777;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="invoice-header">
-        <div class="company-info">
-          <h1>${companyInfo?.company_name || 'Marvellous Steel Enterprise'}</h1>
-          <p class="tagline">${companyInfo?.tagline || 'Steel Manufacturing & Fabrication'}</p>
-          ${companyInfo?.address ? `<p>${companyInfo.address}</p>` : ''}
-          ${companyInfo?.phone ? `<p>Phone: ${companyInfo.phone}</p>` : ''}
-          ${companyInfo?.email ? `<p>Email: ${companyInfo.email}</p>` : ''}
-          ${companyInfo?.website ? `<p>Website: ${companyInfo.website}</p>` : ''}
-        </div>
-        <div class="invoice-details">
-          <h2>INVOICE</h2>
-          <p><strong>Invoice #:</strong> ${invoice.invoice_number}</p>
-          <p><strong>Date:</strong> ${format(new Date(invoice.issue_date), 'dd/MM/yyyy')}</p>
-          <p><strong>Due Date:</strong> ${format(new Date(invoice.due_date), 'dd/MM/yyyy')}</p>
-        </div>
-      </div>
+  // Fetch invoice items
+  const { data: invoiceItems = [] } = useQuery({
+    queryKey: ['invoice-items', invoice.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('invoice_items')
+        .select('*')
+        .eq('invoice_id', invoice.id)
+        .order('created_at');
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
-      <div class="invoice-body">
-        <h2>Bill to:</h2>
-        <p>${client?.company_name || 'N/A'}</p>
-        <p>${client?.address || 'N/A'}</p>
-        <p>Email: ${client?.email || 'N/A'}</p>
-        <p>Phone: ${client?.phone || 'N/A'}</p>
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN'
+    }).format(amount);
+  };
 
-        <table class="items-table">
-          <thead>
-            <tr>
-              <th>Description</th>
-              <th>Quantity</th>
-              <th>Unit Price</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${items.map(item => `
-              <tr>
-                <td>${item.description}</td>
-                <td>${item.quantity}</td>
-                <td>$${item.unit_price.toFixed(2)}</td>
-                <td>$${(item.quantity * item.unit_price).toFixed(2)}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-
-        <div class="total">
-          <strong>Total: $${invoice.total_amount.toFixed(2)}</strong>
-        </div>
-      </div>
-
-      <div class="footer">
-        <p>Thank you for your business!</p>
-        <p>${companyInfo?.company_name || 'Marvellous Steel Enterprise'}</p>
-      </div>
-    </body>
-    </html>
-    `;
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
   const handlePrint = () => {
-    if (!invoice || !client || !items || !companyInfo) {
-      toast({
-        title: 'Error',
-        description: 'Invoice details are still loading.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    const printableContent = generatePrintableHTML(invoice, client, items, companyInfo);
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(printableContent);
-      printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
-    } else {
-      toast({
-        title: 'Error',
-        description: 'Please allow pop-ups to print the invoice.',
-        variant: 'destructive',
-      });
-    }
+    window.print();
   };
 
   const handleDownload = () => {
-    if (!invoice || !client || !items || !companyInfo) {
-      toast({
-        title: 'Error',
-        description: 'Invoice details are still loading.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    const printableContent = generatePrintableHTML(invoice, client, items, companyInfo);
-    const blob = new Blob([printableContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `invoice_${invoice.invoice_number}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // For now, we'll just trigger print dialog
+    // In a real app, you might want to generate a PDF
+    handlePrint();
   };
 
-  if (isClientLoading || isItemsLoading || isCompanyInfoLoading) {
-    return <div className="text-center p-4">Loading invoice details...</div>;
-  }
-
-  if (clientError || itemsError || companyInfoError) {
-    return <div className="text-center p-4 text-red-500">Error loading invoice details.</div>;
-  }
-
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Invoice Details</h1>
+    <div className="p-6 space-y-6 animate-fade-in">
+      {/* Header Actions */}
+      <div className="flex justify-between items-center print:hidden">
+        <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
+          <ArrowLeft className="w-4 h-4" />
+          Back to Invoices
+        </Button>
+        
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handlePrint}>
+          <Button variant="outline" onClick={handlePrint} className="flex items-center gap-2">
+            <Print className="w-4 h-4" />
             Print
           </Button>
-          <Button onClick={handleDownload}>Download</Button>
-          <Button variant="secondary" onClick={onEdit}>
-            Edit
+          <Button variant="outline" onClick={handleDownload} className="flex items-center gap-2">
+            <Download className="w-4 h-4" />
+            Download
           </Button>
-          <Button variant="secondary" onClick={onBack}>
-            Back
+          <Button onClick={onEdit} className="flex items-center gap-2">
+            <Edit className="w-4 h-4" />
+            Edit Invoice
           </Button>
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {companyInfo?.company_name || 'Marvellous Steel Enterprise'}
-              </h1>
-              <p className="text-gray-600 mb-4">
-                {companyInfo?.tagline || 'Steel Manufacturing & Fabrication'}
-              </p>
+      {/* Invoice Content */}
+      <Card className="max-w-4xl mx-auto">
+        <CardContent className="p-8">
+          {/* Company Header */}
+          <div className="border-b pb-6 mb-6">
+            <div className="grid grid-cols-2 gap-8">
               <div>
-                {companyInfo?.address && <p className="text-sm text-gray-500">{companyInfo.address}</p>}
-                {companyInfo?.phone && <p className="text-sm text-gray-500">Phone: {companyInfo.phone}</p>}
-                {companyInfo?.email && <p className="text-sm text-gray-500">Email: {companyInfo.email}</p>}
-                {companyInfo?.website && <p className="text-sm text-gray-500">Website: {companyInfo.website}</p>}
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  {companyInfo?.company_name || 'Your Company'}
+                </h1>
+                <p className="text-gray-600 mb-4">
+                  {companyInfo?.tagline || 'Professional Services'}
+                </p>
+                <div className="text-sm text-gray-600 space-y-1">
+                  {companyInfo?.address && <p>{companyInfo.address}</p>}
+                  {companyInfo?.phone && <p>Phone: {companyInfo.phone}</p>}
+                  {companyInfo?.email && <p>Email: {companyInfo.email}</p>}
+                  {companyInfo?.website && <p>Website: {companyInfo.website}</p>}
+                </div>
               </div>
-            </div>
-            <div className="text-right">
-              <h2 className="text-xl font-semibold text-gray-700">Invoice</h2>
-              <p className="text-gray-500">Invoice Number: {invoice?.invoice_number}</p>
-              <p className="text-gray-500">Issue Date: {format(new Date(invoice?.issue_date), 'PPP')}</p>
-              <p className="text-gray-500">Due Date: {format(new Date(invoice?.due_date), 'PPP')}</p>
+              
+              <div className="text-right">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">INVOICE</h2>
+                <div className="space-y-2 text-sm">
+                  <p><span className="font-medium">Invoice #:</span> {invoice.invoice_number}</p>
+                  <p><span className="font-medium">Issue Date:</span> {formatDate(invoice.issue_date)}</p>
+                  <p><span className="font-medium">Due Date:</span> {formatDate(invoice.due_date)}</p>
+                </div>
+              </div>
             </div>
           </div>
-        </CardHeader>
 
-        <CardContent>
-          <Separator className="my-4" />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">Bill to:</h3>
-              <div className="text-gray-600">
-                <div>{client?.company_name}</div>
-                <div>{client?.address}</div>
-                <div>{client?.email}</div>
-                <div>{client?.phone}</div>
-              </div>
+          {/* Bill To Section */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">Bill To:</h3>
+            <div className="text-sm text-gray-700 space-y-1">
+              <p className="font-medium">{invoice.clients?.company_name || 'Client Name'}</p>
+              {invoice.clients?.address && <p>{invoice.clients.address}</p>}
+              {invoice.clients?.email && <p>{invoice.clients.email}</p>}
+              {invoice.clients?.contact_name && <p>Contact: {invoice.clients.contact_name}</p>}
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">Summary:</h3>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Description
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Quantity
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Unit Price
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Total
-                      </th>
+          </div>
+
+          {/* Invoice Items Table */}
+          <div className="mb-8">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b-2 border-gray-200">
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Description</th>
+                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Qty</th>
+                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Unit Price</th>
+                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoiceItems.length > 0 ? (
+                  invoiceItems.map((item, index) => (
+                    <tr key={index} className="border-b border-gray-100">
+                      <td className="py-3 px-4 text-gray-800">{item.description}</td>
+                      <td className="py-3 px-4 text-right text-gray-800">{item.quantity}</td>
+                      <td className="py-3 px-4 text-right text-gray-800">{formatCurrency(item.unit_price)}</td>
+                      <td className="py-3 px-4 text-right text-gray-800">{formatCurrency(item.line_total)}</td>
                     </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {items?.map((item) => (
-                      <tr key={item.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.description}</td>
-                        <td className="px-6 py-4 text-right whitespace-nowrap text-sm text-gray-500">{item.quantity}</td>
-                        <td className="px-6 py-4 text-right whitespace-nowrap text-sm text-gray-500">${item.unit_price.toFixed(2)}</td>
-                        <td className="px-6 py-4 text-right whitespace-nowrap text-sm text-gray-500">${(item.quantity * item.unit_price).toFixed(2)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                  ))
+                ) : (
+                  <tr className="border-b border-gray-100">
+                    <td className="py-3 px-4 text-gray-800">Professional Services</td>
+                    <td className="py-3 px-4 text-right text-gray-800">1</td>
+                    <td className="py-3 px-4 text-right text-gray-800">{formatCurrency(invoice.subtotal)}</td>
+                    <td className="py-3 px-4 text-right text-gray-800">{formatCurrency(invoice.subtotal)}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Totals Section */}
+          <div className="flex justify-end mb-8">
+            <div className="w-64">
+              <div className="space-y-2">
+                <div className="flex justify-between py-2">
+                  <span className="text-gray-700">Subtotal:</span>
+                  <span className="text-gray-900">{formatCurrency(invoice.subtotal)}</span>
+                </div>
+                {invoice.tax_amount > 0 && (
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-700">Tax:</span>
+                    <span className="text-gray-900">{formatCurrency(invoice.tax_amount)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between py-2 border-t border-gray-200 font-bold text-lg">
+                  <span className="text-gray-900">Total:</span>
+                  <span className="text-gray-900">{formatCurrency(invoice.total_amount)}</span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="text-right mt-4">
-            <h2 className="text-2xl font-bold">Total: ${invoice?.total_amount?.toFixed(2)}</h2>
+          {/* Notes Section */}
+          {invoice.notes && (
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Notes:</h3>
+              <p className="text-gray-700 whitespace-pre-wrap">{invoice.notes}</p>
+            </div>
+          )}
+
+          {/* Payment Information */}
+          {companyInfo?.bank_name && (
+            <div className="border-t pt-6 mt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Payment Information:</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+                <div>
+                  <p><span className="font-medium">Bank:</span> {companyInfo.bank_name}</p>
+                  <p><span className="font-medium">Account Name:</span> {companyInfo.account_name}</p>
+                </div>
+                <div>
+                  <p><span className="font-medium">Account Number:</span> {companyInfo.account_number}</p>
+                  <p><span className="font-medium">Sort Code:</span> {companyInfo.sort_code}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="border-t pt-6 mt-8 text-center text-sm text-gray-500">
+            <p>Thank you for your business!</p>
+            <p className="mt-2">
+              {companyInfo?.company_name || 'Your Company'} - Professional Invoice Management
+            </p>
           </div>
         </CardContent>
       </Card>
