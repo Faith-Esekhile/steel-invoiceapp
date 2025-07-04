@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,35 +7,28 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { Tables } from '@/integrations/supabase/types';
+
+type Invoice = Tables<'invoices'>;
+type Client = Tables<'clients'>;
+type InvoiceItem = Tables<'invoice_items'>;
+type CompanyInfo = Tables<'company_info'>;
 
 interface InvoiceViewProps {
-  invoiceId: string;
-  onClose?: () => void;
+  invoice: Invoice & {
+    clients?: Client;
+  };
+  onBack: () => void;
+  onEdit: () => void;
 }
 
-const InvoiceView: React.FC<InvoiceViewProps> = ({ invoiceId, onClose }) => {
+const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) => {
   const { toast } = useToast();
 
-  const { data: invoice, isLoading: isInvoiceLoading, error: invoiceError } = useQuery(
-    ['invoice', invoiceId],
-    async () => {
-      const { data, error } = await supabase
-        .from('invoices')
-        .select('*')
-        .eq('id', invoiceId)
-        .single();
-
-      if (error) {
-        throw new Error(error.message);
-      }
-      return data;
-    }
-  );
-
-  const { data: client, isLoading: isClientLoading, error: clientError } = useQuery(
-    ['client', invoice?.client_id],
-    async () => {
-      if (!invoice?.client_id) return null;
+  const { data: client, isLoading: isClientLoading, error: clientError } = useQuery({
+    queryKey: ['client', invoice.client_id],
+    queryFn: async () => {
+      if (!invoice.client_id) return null;
       const { data, error } = await supabase
         .from('clients')
         .select('*')
@@ -46,33 +40,29 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoiceId, onClose }) => {
       }
       return data;
     },
-    {
-      enabled: !!invoice?.client_id,
-    }
-  );
+    enabled: !!invoice.client_id,
+  });
 
-  const { data: items, isLoading: isItemsLoading, error: itemsError } = useQuery(
-    ['invoiceItems', invoiceId],
-    async () => {
-      if (!invoiceId) return [];
+  const { data: items, isLoading: isItemsLoading, error: itemsError } = useQuery({
+    queryKey: ['invoiceItems', invoice.id],
+    queryFn: async () => {
+      if (!invoice.id) return [];
       const { data, error } = await supabase
         .from('invoice_items')
         .select('*')
-        .eq('invoice_id', invoiceId);
+        .eq('invoice_id', invoice.id);
 
       if (error) {
         throw new Error(error.message);
       }
       return data;
     },
-    {
-      enabled: !!invoiceId,
-    }
-  );
+    enabled: !!invoice.id,
+  });
 
-  const { data: companyInfo, isLoading: isCompanyInfoLoading, error: companyInfoError } = useQuery(
-    ['companyInfo'],
-    async () => {
+  const { data: companyInfo, isLoading: isCompanyInfoLoading, error: companyInfoError } = useQuery({
+    queryKey: ['companyInfo'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('company_info')
         .select('*')
@@ -83,9 +73,9 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoiceId, onClose }) => {
       }
       return data;
     }
-  );
+  });
 
-  const generatePrintableHTML = (invoice: any, client: any, items: any[], companyInfo: any) => {
+  const generatePrintableHTML = (invoice: Invoice, client: Client | null, items: InvoiceItem[], companyInfo: CompanyInfo) => {
     return `
     <!DOCTYPE html>
     <html>
@@ -276,11 +266,11 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoiceId, onClose }) => {
     URL.revokeObjectURL(url);
   };
 
-  if (isInvoiceLoading || isClientLoading || isItemsLoading || isCompanyInfoLoading) {
+  if (isClientLoading || isItemsLoading || isCompanyInfoLoading) {
     return <div className="text-center p-4">Loading invoice details...</div>;
   }
 
-  if (invoiceError || clientError || itemsError || companyInfoError) {
+  if (clientError || itemsError || companyInfoError) {
     return <div className="text-center p-4 text-red-500">Error loading invoice details.</div>;
   }
 
@@ -293,11 +283,12 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoiceId, onClose }) => {
             Print
           </Button>
           <Button onClick={handleDownload}>Download</Button>
-          {onClose && (
-            <Button variant="secondary" onClick={onClose}>
-              Close
-            </Button>
-          )}
+          <Button variant="secondary" onClick={onEdit}>
+            Edit
+          </Button>
+          <Button variant="secondary" onClick={onBack}>
+            Back
+          </Button>
         </div>
       </div>
 
