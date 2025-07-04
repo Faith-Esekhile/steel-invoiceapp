@@ -62,6 +62,16 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose, item }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate warehouse location is selected
+    if (!formData.warehouse_location_id) {
+      toast({
+        title: "Error",
+        description: "Please select a warehouse location",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       if (item) {
         await updateItem.mutateAsync({ id: item.id, ...formData });
@@ -125,13 +135,14 @@ const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, onClose, item }
           </div>
 
           <div>
-            <Label htmlFor="warehouse_location">Warehouse Location</Label>
+            <Label htmlFor="warehouse_location">Warehouse Location *</Label>
             <Select 
               value={formData.warehouse_location_id} 
               onValueChange={(value) => setFormData({ ...formData, warehouse_location_id: value })}
+              required
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select warehouse location" />
+                <SelectValue placeholder="Select warehouse location *" />
               </SelectTrigger>
               <SelectContent>
                 {warehouseLocations.map((location) => (

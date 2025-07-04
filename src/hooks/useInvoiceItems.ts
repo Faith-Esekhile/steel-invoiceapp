@@ -52,14 +52,19 @@ export const useUpdateInventoryQuantity = () => {
   
   return useMutation({
     mutationFn: async ({ inventoryId, quantityToReduce }: { inventoryId: string; quantityToReduce: number }) => {
-      // First get current quantity
+      // First get current quantity to validate
       const { data: currentItem, error: fetchError } = await supabase
         .from('inventory')
-        .select('quantity')
+        .select('quantity, name')
         .eq('id', inventoryId)
         .single();
       
       if (fetchError) throw fetchError;
+      
+      // Check if we have enough quantity
+      if (currentItem.quantity < quantityToReduce) {
+        throw new Error(`Insufficient inventory: Only ${currentItem.quantity} units of ${currentItem.name} available, but ${quantityToReduce} requested`);
+      }
       
       const newQuantity = Math.max(0, currentItem.quantity - quantityToReduce);
       
