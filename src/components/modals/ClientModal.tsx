@@ -111,14 +111,13 @@ const ClientModal: React.FC<ClientModalProps> = ({ isOpen, onClose, client }) =>
             />
           </div>
           <div>
-            <Label htmlFor="email">Email *</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               name="email"
               type="email"
               value={formData.email}
               onChange={handleChange}
-              required
             />
           </div>
           <div>

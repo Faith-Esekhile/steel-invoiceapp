@@ -27,6 +27,47 @@ interface InvoiceViewProps {
 const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) => {
   const { user } = useAuth();
 
+  // Add print styles when component mounts
+  useEffect(() => {
+    const printStyles = `
+      <style id="invoice-print-styles">
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          .invoice-print-content, .invoice-print-content * {
+            visibility: visible;
+          }
+          .invoice-print-content {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+          }
+          .print\\:hidden {
+            display: none !important;
+          }
+        }
+      </style>
+    `;
+    
+    // Remove existing print styles
+    const existingStyles = document.getElementById('invoice-print-styles');
+    if (existingStyles) {
+      existingStyles.remove();
+    }
+    
+    // Add new print styles
+    document.head.insertAdjacentHTML('beforeend', printStyles);
+    
+    return () => {
+      const styles = document.getElementById('invoice-print-styles');
+      if (styles) {
+        styles.remove();
+      }
+    };
+  }, []);
+
   // Fetch company info
   const { data: companyInfo } = useQuery({
     queryKey: ['company-info', user?.id],
@@ -110,138 +151,140 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
         </div>
       </div>
 
-      {/* Invoice Content */}
-      <Card className="max-w-4xl mx-auto">
-        <CardContent className="p-8">
-          {/* Company Header */}
-          <div className="border-b pb-6 mb-6">
-            <div className="grid grid-cols-2 gap-8">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {companyInfo?.company_name || 'Your Company'}
-                </h1>
-                <p className="text-gray-600 mb-4">
-                  {companyInfo?.tagline || 'Professional Services'}
-                </p>
-                <div className="text-sm text-gray-600 space-y-1">
-                  {companyInfo?.address && <p>{companyInfo.address}</p>}
-                  {companyInfo?.phone && <p>Phone: {companyInfo.phone}</p>}
-                  {companyInfo?.email && <p>Email: {companyInfo.email}</p>}
-                  {companyInfo?.website && <p>Website: {companyInfo.website}</p>}
-                </div>
-              </div>
-              
-              <div className="text-right">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">INVOICE</h2>
-                <div className="space-y-2 text-sm">
-                  <p><span className="font-medium">Invoice #:</span> {invoice.invoice_number}</p>
-                  <p><span className="font-medium">Issue Date:</span> {formatDate(invoice.issue_date)}</p>
-                  <p><span className="font-medium">Due Date:</span> {formatDate(invoice.due_date)}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Bill To Section */}
-          <div className="mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Bill To:</h3>
-            <div className="text-sm text-gray-700 space-y-1">
-              <p className="font-medium">{invoice.clients?.company_name || 'Client Name'}</p>
-              {invoice.clients?.address && <p>{invoice.clients.address}</p>}
-              {invoice.clients?.email && <p>{invoice.clients.email}</p>}
-              {invoice.clients?.contact_name && <p>Contact: {invoice.clients.contact_name}</p>}
-            </div>
-          </div>
-
-          {/* Invoice Items Table */}
-          <div className="mb-8">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b-2 border-gray-200">
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Description</th>
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Qty</th>
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Unit Price</th>
-                  <th className="text-right py-3 px-4 font-semibold text-gray-700">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoiceItems.length > 0 ? (
-                  invoiceItems.map((item, index) => (
-                    <tr key={index} className="border-b border-gray-100">
-                      <td className="py-3 px-4 text-gray-800">{item.description}</td>
-                      <td className="py-3 px-4 text-right text-gray-800">{item.quantity}</td>
-                      <td className="py-3 px-4 text-right text-gray-800">{formatCurrency(item.unit_price)}</td>
-                      <td className="py-3 px-4 text-right text-gray-800">{formatCurrency(item.line_total)}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr className="border-b border-gray-100">
-                    <td className="py-3 px-4 text-gray-800">Professional Services</td>
-                    <td className="py-3 px-4 text-right text-gray-800">1</td>
-                    <td className="py-3 px-4 text-right text-gray-800">{formatCurrency(invoice.subtotal)}</td>
-                    <td className="py-3 px-4 text-right text-gray-800">{formatCurrency(invoice.subtotal)}</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Totals Section */}
-          <div className="flex justify-end mb-8">
-            <div className="w-64">
-              <div className="space-y-2">
-                <div className="flex justify-between py-2">
-                  <span className="text-gray-700">Subtotal:</span>
-                  <span className="text-gray-900">{formatCurrency(invoice.subtotal)}</span>
-                </div>
-                {invoice.tax_amount > 0 && (
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-700">Tax:</span>
-                    <span className="text-gray-900">{formatCurrency(invoice.tax_amount)}</span>
+      {/* Invoice Content - This will be the exact same for both screen and print */}
+      <div className="invoice-print-content">
+        <Card className="max-w-4xl mx-auto">
+          <CardContent className="p-8">
+            {/* Company Header */}
+            <div className="border-b pb-6 mb-6">
+              <div className="grid grid-cols-2 gap-8">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    {companyInfo?.company_name || 'Your Company'}
+                  </h1>
+                  <p className="text-gray-600 mb-4">
+                    {companyInfo?.tagline || 'Professional Services'}
+                  </p>
+                  <div className="text-sm text-gray-600 space-y-1">
+                    {companyInfo?.address && <p>{companyInfo.address}</p>}
+                    {companyInfo?.phone && <p>Phone: {companyInfo.phone}</p>}
+                    {companyInfo?.email && <p>Email: {companyInfo.email}</p>}
+                    {companyInfo?.website && <p>Website: {companyInfo.website}</p>}
                   </div>
-                )}
-                <div className="flex justify-between py-2 border-t border-gray-200 font-bold text-lg">
-                  <span className="text-gray-900">Total:</span>
-                  <span className="text-gray-900">{formatCurrency(invoice.total_amount)}</span>
+                </div>
+                
+                <div className="text-right">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">INVOICE</h2>
+                  <div className="space-y-2 text-sm">
+                    <p><span className="font-medium">Invoice #:</span> {invoice.invoice_number}</p>
+                    <p><span className="font-medium">Issue Date:</span> {formatDate(invoice.issue_date)}</p>
+                    <p><span className="font-medium">Due Date:</span> {formatDate(invoice.due_date)}</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Notes Section */}
-          {invoice.notes && (
-            <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Notes:</h3>
-              <p className="text-gray-700 whitespace-pre-wrap">{invoice.notes}</p>
+            {/* Bill To Section */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Bill To:</h3>
+              <div className="text-sm text-gray-700 space-y-1">
+                <p className="font-medium">{invoice.clients?.company_name || 'Client Name'}</p>
+                {invoice.clients?.address && <p>{invoice.clients.address}</p>}
+                {invoice.clients?.email && <p>{invoice.clients.email}</p>}
+                {invoice.clients?.contact_name && <p>Contact: {invoice.clients.contact_name}</p>}
+              </div>
             </div>
-          )}
 
-          {/* Payment Information */}
-          {companyInfo?.bank_name && (
-            <div className="border-t pt-6 mt-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Payment Information:</h3>
-              <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
-                <div>
-                  <p><span className="font-medium">Bank:</span> {companyInfo.bank_name}</p>
-                  <p><span className="font-medium">Account Name:</span> {companyInfo.account_name}</p>
-                </div>
-                <div>
-                  <p><span className="font-medium">Account Number:</span> {companyInfo.account_number}</p>
-                  <p><span className="font-medium">Sort Code:</span> {companyInfo.sort_code}</p>
+            {/* Invoice Items Table */}
+            <div className="mb-8">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b-2 border-gray-200">
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Description</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Qty</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Unit Price</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoiceItems.length > 0 ? (
+                    invoiceItems.map((item, index) => (
+                      <tr key={index} className="border-b border-gray-100">
+                        <td className="py-3 px-4 text-gray-800">{item.description}</td>
+                        <td className="py-3 px-4 text-right text-gray-800">{item.quantity}</td>
+                        <td className="py-3 px-4 text-right text-gray-800">{formatCurrency(item.unit_price)}</td>
+                        <td className="py-3 px-4 text-right text-gray-800">{formatCurrency(item.line_total)}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr className="border-b border-gray-100">
+                      <td className="py-3 px-4 text-gray-800">Professional Services</td>
+                      <td className="py-3 px-4 text-right text-gray-800">1</td>
+                      <td className="py-3 px-4 text-right text-gray-800">{formatCurrency(invoice.subtotal)}</td>
+                      <td className="py-3 px-4 text-right text-gray-800">{formatCurrency(invoice.subtotal)}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Totals Section */}
+            <div className="flex justify-end mb-8">
+              <div className="w-64">
+                <div className="space-y-2">
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-700">Subtotal:</span>
+                    <span className="text-gray-900">{formatCurrency(invoice.subtotal)}</span>
+                  </div>
+                  {invoice.tax_amount > 0 && (
+                    <div className="flex justify-between py-2">
+                      <span className="text-gray-700">Tax:</span>
+                      <span className="text-gray-900">{formatCurrency(invoice.tax_amount)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between py-2 border-t border-gray-200 font-bold text-lg">
+                    <span className="text-gray-900">Total:</span>
+                    <span className="text-gray-900">{formatCurrency(invoice.total_amount)}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          )}
 
-          {/* Footer */}
-          <div className="border-t pt-6 mt-8 text-center text-sm text-gray-500">
-            <p>Thank you for your business!</p>
-            <p className="mt-2">
-              {companyInfo?.company_name || 'Your Company'} - Professional Invoice Management
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+            {/* Notes Section */}
+            {invoice.notes && (
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Notes:</h3>
+                <p className="text-gray-700 whitespace-pre-wrap">{invoice.notes}</p>
+              </div>
+            )}
+
+            {/* Payment Information */}
+            {companyInfo?.bank_name && (
+              <div className="border-t pt-6 mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Payment Information:</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+                  <div>
+                    <p><span className="font-medium">Bank:</span> {companyInfo.bank_name}</p>
+                    <p><span className="font-medium">Account Name:</span> {companyInfo.account_name}</p>
+                  </div>
+                  <div>
+                    <p><span className="font-medium">Account Number:</span> {companyInfo.account_number}</p>
+                    <p><span className="font-medium">Sort Code:</span> {companyInfo.sort_code}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="border-t pt-6 mt-8 text-center text-sm text-gray-500">
+              <p>Thank you for your business!</p>
+              <p className="mt-2">
+                {companyInfo?.company_name || 'Your Company'} - Professional Invoice Management
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
