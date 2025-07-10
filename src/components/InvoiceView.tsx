@@ -162,7 +162,7 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
                   {companyInfo?.company_name || 'Your Company'}
                 </h1>
                 <p className="text-blue-100 text-lg mb-4">
-                  {companyInfo?.tagline || 'Professional Services'}
+                  {companyInfo?.tagline ? companyInfo.tagline.replace(' Solutions', '') : 'Professional Services'}
                 </p>
                 <div className="text-sm text-blue-100 space-y-1">
                   {companyInfo?.address && <p>{companyInfo.address}</p>}
