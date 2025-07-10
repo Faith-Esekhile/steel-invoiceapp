@@ -32,21 +32,21 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
     const printStyles = `
       <style id="invoice-print-styles">
         @media print {
-          body * {
-            visibility: hidden;
-          }
-          .invoice-print-content, .invoice-print-content * {
-            visibility: visible;
-          }
+          * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+          body * { visibility: hidden; }
+          .invoice-print-content, .invoice-print-content * { visibility: visible; }
           .invoice-print-content {
             position: absolute;
             left: 0;
             top: 0;
             width: 100%;
+            background: white !important;
           }
-          .print\\:hidden {
-            display: none !important;
-          }
+          .print\\:hidden { display: none !important; }
+          .invoice-header-bg { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important; }
+          .invoice-blue-accent { background: #1e40af !important; }
+          .invoice-blue-text { color: #1e40af !important; }
+          .invoice-blue-border { border-color: #1e40af !important; }
         }
       </style>
     `;
@@ -127,101 +127,105 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
   };
 
   return (
-    <div className="p-6 space-y-6 animate-fade-in">
+    <div className="min-h-screen bg-gray-50 p-6 space-y-6 animate-fade-in">
       {/* Header Actions */}
       <div className="flex justify-between items-center print:hidden">
-        <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
+        <Button variant="outline" onClick={onBack} className="flex items-center gap-2 border-blue-200 text-blue-700 hover:bg-blue-50">
           <ArrowLeft className="w-4 h-4" />
           Back to Invoices
         </Button>
         
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handlePrint} className="flex items-center gap-2">
+          <Button variant="outline" onClick={handlePrint} className="flex items-center gap-2 border-blue-200 text-blue-700 hover:bg-blue-50">
             <Printer className="w-4 h-4" />
             Print
           </Button>
-          <Button variant="outline" onClick={handleDownload} className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleDownload} className="flex items-center gap-2 border-blue-200 text-blue-700 hover:bg-blue-50">
             <Download className="w-4 h-4" />
             Download
           </Button>
-          <Button onClick={onEdit} className="flex items-center gap-2">
+          <Button onClick={onEdit} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white">
             <Edit className="w-4 h-4" />
             Edit Invoice
           </Button>
         </div>
       </div>
 
-      {/* Invoice Content - This will be the exact same for both screen and print */}
+      {/* Invoice Content */}
       <div className="invoice-print-content">
-        <Card className="max-w-4xl mx-auto">
-          <CardContent className="p-8">
-            {/* Company Header */}
-            <div className="border-b pb-6 mb-6">
-              <div className="grid grid-cols-2 gap-8">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                    {companyInfo?.company_name || 'Your Company'}
-                  </h1>
-                  <p className="text-gray-600 mb-4">
-                    {companyInfo?.tagline || 'Professional Services'}
-                  </p>
-                  <div className="text-sm text-gray-600 space-y-1">
-                    {companyInfo?.address && <p>{companyInfo.address}</p>}
-                    {companyInfo?.phone && <p>Phone: {companyInfo.phone}</p>}
-                    {companyInfo?.email && <p>Email: {companyInfo.email}</p>}
-                    {companyInfo?.website && <p>Website: {companyInfo.website}</p>}
-                  </div>
+        <div className="max-w-4xl mx-auto bg-white shadow-lg">
+          {/* Header with Blue Gradient */}
+          <div className="invoice-header-bg bg-gradient-to-r from-blue-600 to-blue-500 text-white p-8">
+            <div className="grid grid-cols-2 gap-8">
+              <div>
+                <h1 className="text-4xl font-bold mb-2">
+                  {companyInfo?.company_name || 'Your Company'}
+                </h1>
+                <p className="text-blue-100 text-lg mb-4">
+                  {companyInfo?.tagline || 'Professional Services'}
+                </p>
+                <div className="text-sm text-blue-100 space-y-1">
+                  {companyInfo?.address && <p>{companyInfo.address}</p>}
+                  {companyInfo?.phone && <p>Phone: {companyInfo.phone}</p>}
+                  {companyInfo?.email && <p>Email: {companyInfo.email}</p>}
+                  {companyInfo?.website && <p>Website: {companyInfo.website}</p>}
                 </div>
-                
-                <div className="text-right">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">INVOICE</h2>
-                  <div className="space-y-2 text-sm">
-                    <p><span className="font-medium">Invoice #:</span> {invoice.invoice_number}</p>
-                    <p><span className="font-medium">Issue Date:</span> {formatDate(invoice.issue_date)}</p>
-                    <p><span className="font-medium">Due Date:</span> {formatDate(invoice.due_date)}</p>
-                  </div>
+              </div>
+              
+              <div className="text-right">
+                <h2 className="text-3xl font-bold mb-4">INVOICE</h2>
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 space-y-2 text-sm">
+                  <p><span className="font-medium">Invoice #:</span> {invoice.invoice_number}</p>
+                  <p><span className="font-medium">Issue Date:</span> {formatDate(invoice.issue_date)}</p>
+                  <p><span className="font-medium">Due Date:</span> {formatDate(invoice.due_date)}</p>
                 </div>
               </div>
             </div>
+          </div>
 
+          <div className="p-8">
             {/* Bill To Section */}
             <div className="mb-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Bill To:</h3>
-              <div className="text-sm text-gray-700 space-y-1">
-                <p className="font-medium">{invoice.clients?.company_name || 'Client Name'}</p>
-                {invoice.clients?.address && <p>{invoice.clients.address}</p>}
-                {invoice.clients?.email && <p>{invoice.clients.email}</p>}
-                {invoice.clients?.contact_name && <p>Contact: {invoice.clients.contact_name}</p>}
+              <div className="invoice-blue-accent bg-blue-600 text-white px-4 py-2 rounded-t-lg">
+                <h3 className="text-lg font-semibold">Bill To:</h3>
+              </div>
+              <div className="border border-blue-200 border-t-0 rounded-b-lg p-4 bg-blue-50/30">
+                <div className="text-sm text-gray-700 space-y-1">
+                  <p className="font-medium text-lg invoice-blue-text text-blue-800">{invoice.clients?.company_name || 'Client Name'}</p>
+                  {invoice.clients?.address && <p>{invoice.clients.address}</p>}
+                  {invoice.clients?.email && <p>{invoice.clients.email}</p>}
+                  {invoice.clients?.contact_name && <p>Contact: {invoice.clients.contact_name}</p>}
+                </div>
               </div>
             </div>
 
             {/* Invoice Items Table */}
-            <div className="mb-8">
+            <div className="mb-8 overflow-hidden rounded-lg border border-blue-200">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b-2 border-gray-200">
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Description</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Qty</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Unit Price</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700">Total</th>
+                  <tr className="invoice-blue-accent bg-blue-600 text-white">
+                    <th className="text-left py-4 px-6 font-semibold">Description</th>
+                    <th className="text-right py-4 px-6 font-semibold">Qty</th>
+                    <th className="text-right py-4 px-6 font-semibold">Unit Price</th>
+                    <th className="text-right py-4 px-6 font-semibold">Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {invoiceItems.length > 0 ? (
                     invoiceItems.map((item, index) => (
-                      <tr key={index} className="border-b border-gray-100">
-                        <td className="py-3 px-4 text-gray-800">{item.description}</td>
-                        <td className="py-3 px-4 text-right text-gray-800">{item.quantity}</td>
-                        <td className="py-3 px-4 text-right text-gray-800">{formatCurrency(item.unit_price)}</td>
-                        <td className="py-3 px-4 text-right text-gray-800">{formatCurrency(item.line_total)}</td>
+                      <tr key={index} className={`${index % 2 === 0 ? 'bg-blue-50/30' : 'bg-white'} border-b border-blue-100`}>
+                        <td className="py-4 px-6 text-gray-800">{item.description}</td>
+                        <td className="py-4 px-6 text-right text-gray-800">{item.quantity}</td>
+                        <td className="py-4 px-6 text-right text-gray-800">{formatCurrency(item.unit_price)}</td>
+                        <td className="py-4 px-6 text-right text-gray-800 font-medium">{formatCurrency(item.line_total)}</td>
                       </tr>
                     ))
                   ) : (
-                    <tr className="border-b border-gray-100">
-                      <td className="py-3 px-4 text-gray-800">Professional Services</td>
-                      <td className="py-3 px-4 text-right text-gray-800">1</td>
-                      <td className="py-3 px-4 text-right text-gray-800">{formatCurrency(invoice.subtotal)}</td>
-                      <td className="py-3 px-4 text-right text-gray-800">{formatCurrency(invoice.subtotal)}</td>
+                    <tr className="bg-blue-50/30 border-b border-blue-100">
+                      <td className="py-4 px-6 text-gray-800">Professional Services</td>
+                      <td className="py-4 px-6 text-right text-gray-800">1</td>
+                      <td className="py-4 px-6 text-right text-gray-800">{formatCurrency(invoice.subtotal)}</td>
+                      <td className="py-4 px-6 text-right text-gray-800 font-medium">{formatCurrency(invoice.subtotal)}</td>
                     </tr>
                   )}
                 </tbody>
@@ -230,21 +234,25 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
 
             {/* Totals Section */}
             <div className="flex justify-end mb-8">
-              <div className="w-64">
-                <div className="space-y-2">
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-700">Subtotal:</span>
-                    <span className="text-gray-900">{formatCurrency(invoice.subtotal)}</span>
-                  </div>
-                  {invoice.tax_amount > 0 && (
-                    <div className="flex justify-between py-2">
-                      <span className="text-gray-700">Tax:</span>
-                      <span className="text-gray-900">{formatCurrency(invoice.tax_amount)}</span>
+              <div className="w-80">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                  <div className="space-y-3">
+                    <div className="flex justify-between py-2 text-gray-700">
+                      <span>Subtotal:</span>
+                      <span className="font-medium">{formatCurrency(invoice.subtotal)}</span>
                     </div>
-                  )}
-                  <div className="flex justify-between py-2 border-t border-gray-200 font-bold text-lg">
-                    <span className="text-gray-900">Total:</span>
-                    <span className="text-gray-900">{formatCurrency(invoice.total_amount)}</span>
+                    {invoice.tax_amount > 0 && (
+                      <div className="flex justify-between py-2 text-gray-700">
+                        <span>Tax:</span>
+                        <span className="font-medium">{formatCurrency(invoice.tax_amount)}</span>
+                      </div>
+                    )}
+                    <div className="invoice-blue-border border-t border-blue-300 pt-3">
+                      <div className="flex justify-between py-2 font-bold text-xl">
+                        <span className="invoice-blue-text text-blue-800">Total:</span>
+                        <span className="invoice-blue-text text-blue-800">{formatCurrency(invoice.total_amount)}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -252,38 +260,46 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
 
             {/* Notes Section */}
             {invoice.notes && (
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Notes:</h3>
-                <p className="text-gray-700 whitespace-pre-wrap">{invoice.notes}</p>
+              <div className="mb-8">
+                <div className="invoice-blue-accent bg-blue-600 text-white px-4 py-2 rounded-t-lg">
+                  <h3 className="text-lg font-semibold">Notes:</h3>
+                </div>
+                <div className="border border-blue-200 border-t-0 rounded-b-lg p-4 bg-blue-50/30">
+                  <p className="text-gray-700 whitespace-pre-wrap">{invoice.notes}</p>
+                </div>
               </div>
             )}
 
             {/* Payment Information */}
             {companyInfo?.bank_name && (
-              <div className="border-t pt-6 mt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Payment Information:</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
-                  <div>
-                    <p><span className="font-medium">Bank:</span> {companyInfo.bank_name}</p>
-                    <p><span className="font-medium">Account Name:</span> {companyInfo.account_name}</p>
-                  </div>
-                  <div>
-                    <p><span className="font-medium">Account Number:</span> {companyInfo.account_number}</p>
-                    <p><span className="font-medium">Sort Code:</span> {companyInfo.sort_code}</p>
+              <div className="mb-8">
+                <div className="invoice-blue-accent bg-blue-600 text-white px-4 py-2 rounded-t-lg">
+                  <h3 className="text-lg font-semibold">Payment Information:</h3>
+                </div>
+                <div className="border border-blue-200 border-t-0 rounded-b-lg p-4 bg-blue-50/30">
+                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+                    <div>
+                      <p><span className="font-medium invoice-blue-text text-blue-700">Bank:</span> {companyInfo.bank_name}</p>
+                      <p><span className="font-medium invoice-blue-text text-blue-700">Account Name:</span> {companyInfo.account_name}</p>
+                    </div>
+                    <div>
+                      <p><span className="font-medium invoice-blue-text text-blue-700">Account Number:</span> {companyInfo.account_number}</p>
+                      <p><span className="font-medium invoice-blue-text text-blue-700">Sort Code:</span> {companyInfo.sort_code}</p>
+                    </div>
                   </div>
                 </div>
               </div>
             )}
 
             {/* Footer */}
-            <div className="border-t pt-6 mt-8 text-center text-sm text-gray-500">
-              <p>Thank you for your business!</p>
+            <div className="text-center text-sm text-gray-500 border-t border-blue-200 pt-6">
+              <p className="font-medium invoice-blue-text text-blue-700">Thank you for your business!</p>
               <p className="mt-2">
                 {companyInfo?.company_name || 'Your Company'} - Professional Invoice Management
               </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
