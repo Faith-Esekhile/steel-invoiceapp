@@ -234,19 +234,17 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
             {/* Totals Section */}
             <div className="flex justify-end mb-8">
               <div className="w-80">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                  <div className="space-y-3">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="space-y-2">
                     {invoice.tax_amount > 0 && (
-                      <div className="flex justify-between py-2 text-gray-700">
+                      <div className="flex justify-between py-1 text-gray-700">
                         <span>Tax:</span>
                         <span className="font-medium">{formatCurrency(invoice.tax_amount)}</span>
                       </div>
                     )}
-                    <div className="invoice-blue-border border-t border-blue-300 pt-3">
-                      <div className="flex justify-between py-2 font-bold text-xl">
-                        <span className="invoice-blue-text text-blue-800">Total:</span>
-                        <span className="invoice-blue-text text-blue-800">{formatCurrency(invoice.total_amount)}</span>
-                      </div>
+                    <div className="flex justify-between py-1 font-bold text-xl">
+                      <span className="invoice-blue-text text-blue-800">Total:</span>
+                      <span className="invoice-blue-text text-blue-800">{formatCurrency(invoice.total_amount)}</span>
                     </div>
                   </div>
                 </div>
