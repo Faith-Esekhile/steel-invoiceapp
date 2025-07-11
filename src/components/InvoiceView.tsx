@@ -45,20 +45,12 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
             top: 0;
             width: 100%;
             background: white !important;
-            font-size: 12px !important;
-            line-height: 1.2 !important;
           }
           .print\\:hidden { display: none !important; }
           .invoice-header-bg { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important; }
           .invoice-blue-accent { background: #1e40af !important; }
           .invoice-blue-text { color: #1e40af !important; }
           .invoice-blue-border { border-color: #1e40af !important; }
-          .print-header { font-size: 24px !important; font-weight: bold !important; }
-          .print-title { font-size: 18px !important; font-weight: bold !important; }
-          .print-subtitle { font-size: 13px !important; font-weight: 600 !important; }
-          .print-text { font-size: 11px !important; }
-          .print-table { font-size: 11px !important; }
-          .print-total { font-size: 16px !important; font-weight: bold !important; }
         }
       </style>
     `;
@@ -138,10 +130,42 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
     handlePrint();
   };
 
-  // Calculate responsive font sizes based on content
-  const itemCount = invoiceItems.length || 1;
-  const getResponsiveFontSize = (baseSize: string, smallSize: string) => {
-    return itemCount > 8 ? smallSize : baseSize;
+  // Dynamic sizing based on number of items
+  const itemCount = Math.max(invoiceItems.length, 1);
+  
+  // Calculate scaling factor based on content density
+  const getScaleFactor = () => {
+    if (itemCount <= 3) return 1; // Full size for few items
+    if (itemCount <= 6) return 0.9; // Slightly smaller
+    if (itemCount <= 10) return 0.8; // Medium size
+    if (itemCount <= 15) return 0.7; // Smaller
+    return 0.6; // Smallest for many items
+  };
+
+  const scaleFactor = getScaleFactor();
+
+  // Dynamic class generation based on scale factor
+  const getDynamicClass = (baseClass: string, printClass: string) => {
+    const sizeMap = {
+      1: baseClass,
+      0.9: baseClass.replace('text-', 'text-').replace('xl', 'lg').replace('lg', 'base').replace('base', 'sm'),
+      0.8: baseClass.replace('text-', 'text-').replace('xl', 'base').replace('lg', 'sm').replace('base', 'xs'),
+      0.7: baseClass.replace('text-', 'text-').replace('xl', 'sm').replace('lg', 'xs').replace('base', 'xs'),
+      0.6: 'text-xs'
+    };
+    return `${sizeMap[scaleFactor] || 'text-xs'} ${printClass}`;
+  };
+
+  const getPadding = () => {
+    if (scaleFactor >= 1) return 'p-6';
+    if (scaleFactor >= 0.8) return 'p-4';
+    return 'p-3';
+  };
+
+  const getSpacing = () => {
+    if (scaleFactor >= 1) return 'space-y-6';
+    if (scaleFactor >= 0.8) return 'space-y-4';
+    return 'space-y-3';
   };
 
   return (
@@ -173,16 +197,16 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
       <div className="invoice-print-content">
         <div className="max-w-4xl mx-auto bg-white shadow-lg">
           {/* Header with Blue Gradient */}
-          <div className="invoice-header-bg bg-gradient-to-r from-blue-600 to-blue-500 text-white p-4">
+          <div className={`invoice-header-bg bg-gradient-to-r from-blue-600 to-blue-500 text-white ${getPadding()}`}>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <h1 className={`print-header font-bold mb-1 ${getResponsiveFontSize('text-2xl', 'text-xl')}`}>
+                <h1 className={getDynamicClass('text-2xl', 'font-bold mb-1')}>
                   {companyInfo?.company_name || 'Your Company'}
                 </h1>
-                <p className={`text-blue-100 print-subtitle mb-2 ${getResponsiveFontSize('text-sm', 'text-xs')}`}>
+                <p className={getDynamicClass('text-sm', 'text-blue-100 mb-2')}>
                   {companyInfo?.tagline ? companyInfo.tagline.replace(' Solutions', '') : 'Professional Services'}
                 </p>
-                <div className={`text-blue-100 space-y-0.5 print-text ${getResponsiveFontSize('text-xs', 'text-xs')}`}>
+                <div className={`text-blue-100 ${getSpacing().replace('space-y-', 'space-y-')} ${getDynamicClass('text-xs', '')}`}>
                   {companyInfo?.address && <p>{companyInfo.address}</p>}
                   {companyInfo?.phone && <p>Phone: {companyInfo.phone}</p>}
                   {companyInfo?.email && <p>Email: {companyInfo.email}</p>}
@@ -191,8 +215,8 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               </div>
               
               <div className="text-right">
-                <h2 className={`print-title font-bold mb-2 ${getResponsiveFontSize('text-xl', 'text-lg')}`}>INVOICE</h2>
-                <div className={`bg-white/10 backdrop-blur-sm rounded-lg p-2 space-y-1 print-text ${getResponsiveFontSize('text-xs', 'text-xs')}`}>
+                <h2 className={getDynamicClass('text-xl', 'font-bold mb-2')}>INVOICE</h2>
+                <div className={`bg-white/10 backdrop-blur-sm rounded-lg p-2 space-y-1 ${getDynamicClass('text-xs', '')}`}>
                   <p><span className="font-medium">Invoice #:</span> {invoice.invoice_number}</p>
                   <p><span className="font-medium">Issue Date:</span> {formatDate(invoice.issue_date)}</p>
                   <p><span className="font-medium">Due Date:</span> {formatDate(invoice.due_date)}</p>
@@ -201,15 +225,15 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
             </div>
           </div>
 
-          <div className="p-3">
+          <div className={getPadding()}>
             {/* Bill To Section */}
-            <div className="mb-3">
+            <div className={`mb-${scaleFactor >= 1 ? '6' : scaleFactor >= 0.8 ? '4' : '3'}`}>
               <div className="invoice-blue-accent bg-blue-600 text-white px-3 py-1 rounded-t-lg">
-                <h3 className={`font-semibold print-subtitle ${getResponsiveFontSize('text-sm', 'text-xs')}`}>Bill To:</h3>
+                <h3 className={getDynamicClass('text-sm', 'font-semibold')}>Bill To:</h3>
               </div>
               <div className="border border-blue-200 border-t-0 rounded-b-lg p-3 bg-blue-50/30">
-                <div className={`text-gray-700 space-y-0.5 print-text ${getResponsiveFontSize('text-sm', 'text-xs')}`}>
-                  <p className={`font-medium invoice-blue-text text-blue-800 ${getResponsiveFontSize('text-sm', 'text-xs')}`}>{invoice.clients?.company_name || 'Client Name'}</p>
+                <div className={`text-gray-700 ${getSpacing().replace('space-y-', 'space-y-')} ${getDynamicClass('text-sm', '')}`}>
+                  <p className={`font-medium invoice-blue-text text-blue-800 ${getDynamicClass('text-sm', '')}`}>{invoice.clients?.company_name || 'Client Name'}</p>
                   {invoice.clients?.address && <p>{invoice.clients.address}</p>}
                   {invoice.clients?.email && <p>{invoice.clients.email}</p>}
                   {invoice.clients?.contact_name && <p>Contact: {invoice.clients.contact_name}</p>}
@@ -218,32 +242,32 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
             </div>
 
             {/* Invoice Items Table */}
-            <div className="mb-3 overflow-hidden rounded-lg border border-blue-200">
+            <div className={`mb-${scaleFactor >= 1 ? '6' : scaleFactor >= 0.8 ? '4' : '3'} overflow-hidden rounded-lg border border-blue-200`}>
               <table className="w-full">
                 <thead>
                   <tr className="invoice-blue-accent bg-blue-600 text-white">
-                    <th className={`text-left py-2 px-3 font-semibold print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>Description</th>
-                    <th className={`text-right py-2 px-3 font-semibold print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>Qty</th>
-                    <th className={`text-right py-2 px-3 font-semibold print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>Unit Price</th>
-                    <th className={`text-right py-2 px-3 font-semibold print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>Total</th>
+                    <th className={`text-left py-2 px-3 font-semibold ${getDynamicClass('text-sm', '')}`}>Description</th>
+                    <th className={`text-right py-2 px-3 font-semibold ${getDynamicClass('text-sm', '')}`}>Qty</th>
+                    <th className={`text-right py-2 px-3 font-semibold ${getDynamicClass('text-sm', '')}`}>Unit Price</th>
+                    <th className={`text-right py-2 px-3 font-semibold ${getDynamicClass('text-sm', '')}`}>Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {invoiceItems.length > 0 ? (
                     invoiceItems.map((item, index) => (
                       <tr key={index} className={`${index % 2 === 0 ? 'bg-blue-50/30' : 'bg-white'} border-b border-blue-100`}>
-                        <td className={`py-2 px-3 text-gray-800 print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>{item.description}</td>
-                        <td className={`py-2 px-3 text-right text-gray-800 print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>{item.quantity}</td>
-                        <td className={`py-2 px-3 text-right text-gray-800 print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>{formatCurrency(item.unit_price)}</td>
-                        <td className={`py-2 px-3 text-right text-gray-800 font-medium print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>{formatCurrency(item.line_total)}</td>
+                        <td className={`py-2 px-3 text-gray-800 ${getDynamicClass('text-sm', '')}`}>{item.description}</td>
+                        <td className={`py-2 px-3 text-right text-gray-800 ${getDynamicClass('text-sm', '')}`}>{item.quantity}</td>
+                        <td className={`py-2 px-3 text-right text-gray-800 ${getDynamicClass('text-sm', '')}`}>{formatCurrency(item.unit_price)}</td>
+                        <td className={`py-2 px-3 text-right text-gray-800 font-medium ${getDynamicClass('text-sm', '')}`}>{formatCurrency(item.line_total)}</td>
                       </tr>
                     ))
                   ) : (
                     <tr className="bg-blue-50/30 border-b border-blue-100">
-                      <td className={`py-2 px-3 text-gray-800 print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>Professional Services</td>
-                      <td className={`py-2 px-3 text-right text-gray-800 print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>1</td>
-                      <td className={`py-2 px-3 text-right text-gray-800 print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>{formatCurrency(invoice.subtotal)}</td>
-                      <td className={`py-2 px-3 text-right text-gray-800 font-medium print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>{formatCurrency(invoice.subtotal)}</td>
+                      <td className={`py-2 px-3 text-gray-800 ${getDynamicClass('text-sm', '')}`}>Professional Services</td>
+                      <td className={`py-2 px-3 text-right text-gray-800 ${getDynamicClass('text-sm', '')}`}>1</td>
+                      <td className={`py-2 px-3 text-right text-gray-800 ${getDynamicClass('text-sm', '')}`}>{formatCurrency(invoice.subtotal)}</td>
+                      <td className={`py-2 px-3 text-right text-gray-800 font-medium ${getDynamicClass('text-sm', '')}`}>{formatCurrency(invoice.subtotal)}</td>
                     </tr>
                   )}
                 </tbody>
@@ -251,9 +275,9 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
             </div>
 
             {/* Totals Section */}
-            <div className="flex justify-end mb-3">
+            <div className={`flex justify-end mb-${scaleFactor >= 1 ? '6' : scaleFactor >= 0.8 ? '4' : '3'}`}>
               <div className="w-48">
-                <div className={`font-bold invoice-blue-text text-blue-800 text-right print-total ${getResponsiveFontSize('text-lg', 'text-base')}`}>
+                <div className={`font-bold invoice-blue-text text-blue-800 text-right ${getDynamicClass('text-lg', '')}`}>
                   <span>Total: {formatCurrency(invoice.total_amount)}</span>
                 </div>
               </div>
@@ -261,24 +285,24 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
 
             {/* Notes Section */}
             {invoice.notes && (
-              <div className="mb-3">
+              <div className={`mb-${scaleFactor >= 1 ? '6' : scaleFactor >= 0.8 ? '4' : '3'}`}>
                 <div className="invoice-blue-accent bg-blue-600 text-white px-3 py-1 rounded-t-lg">
-                  <h3 className={`font-semibold print-subtitle ${getResponsiveFontSize('text-sm', 'text-xs')}`}>Notes:</h3>
+                  <h3 className={getDynamicClass('text-sm', 'font-semibold')}>Notes:</h3>
                 </div>
                 <div className="border border-blue-200 border-t-0 rounded-b-lg p-3 bg-blue-50/30">
-                  <p className={`text-gray-700 whitespace-pre-wrap print-text ${getResponsiveFontSize('text-sm', 'text-xs')}`}>{invoice.notes}</p>
+                  <p className={`text-gray-700 whitespace-pre-wrap ${getDynamicClass('text-sm', '')}`}>{invoice.notes}</p>
                 </div>
               </div>
             )}
 
             {/* Payment Information */}
             {companyInfo?.bank_name && (
-              <div className="mb-3">
+              <div className={`mb-${scaleFactor >= 1 ? '6' : scaleFactor >= 0.8 ? '4' : '3'}`}>
                 <div className="invoice-blue-accent bg-blue-600 text-white px-3 py-1 rounded-t-lg">
-                  <h3 className={`font-semibold print-subtitle ${getResponsiveFontSize('text-sm', 'text-xs')}`}>Payment Information:</h3>
+                  <h3 className={getDynamicClass('text-sm', 'font-semibold')}>Payment Information:</h3>
                 </div>
                 <div className="border border-blue-200 border-t-0 rounded-b-lg p-3 bg-blue-50/30">
-                  <div className={`grid grid-cols-2 gap-3 text-gray-700 print-text ${getResponsiveFontSize('text-sm', 'text-xs')}`}>
+                  <div className={`grid grid-cols-2 gap-3 text-gray-700 ${getDynamicClass('text-sm', '')}`}>
                     <div>
                       <p><span className="font-medium invoice-blue-text text-blue-700">Bank:</span> {companyInfo.bank_name}</p>
                       <p><span className="font-medium invoice-blue-text text-blue-700">Account Name:</span> {companyInfo.account_name}</p>
@@ -293,7 +317,7 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
             )}
 
             {/* Footer */}
-            <div className={`text-center text-gray-500 border-t border-blue-200 pt-2 print-text ${getResponsiveFontSize('text-sm', 'text-xs')}`}>
+            <div className={`text-center text-gray-500 border-t border-blue-200 pt-2 ${getDynamicClass('text-sm', '')}`}>
               <p className="font-medium invoice-blue-text text-blue-700">Thank you for your business!</p>
               <p className="mt-1">
                 {companyInfo?.company_name || 'Your Company'} - Professional Invoice Management
