@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -237,10 +236,6 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               <div className="w-80">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
                   <div className="space-y-3">
-                    <div className="flex justify-between py-2 text-gray-700">
-                      <span>Subtotal:</span>
-                      <span className="font-medium">{formatCurrency(invoice.subtotal)}</span>
-                    </div>
                     {invoice.tax_amount > 0 && (
                       <div className="flex justify-between py-2 text-gray-700">
                         <span>Tax:</span>
