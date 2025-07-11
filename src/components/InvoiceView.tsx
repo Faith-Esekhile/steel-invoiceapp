@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,10 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
     const printStyles = `
       <style id="invoice-print-styles">
         @media print {
+          @page { 
+            size: A4; 
+            margin: 0.5in; 
+          }
           * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
           body * { visibility: hidden; }
           .invoice-print-content, .invoice-print-content * { visibility: visible; }
@@ -40,12 +45,20 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
             top: 0;
             width: 100%;
             background: white !important;
+            font-size: 11px !important;
+            line-height: 1.3 !important;
           }
           .print\\:hidden { display: none !important; }
           .invoice-header-bg { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important; }
           .invoice-blue-accent { background: #1e40af !important; }
           .invoice-blue-text { color: #1e40af !important; }
           .invoice-blue-border { border-color: #1e40af !important; }
+          .print-header { font-size: 20px !important; }
+          .print-title { font-size: 16px !important; }
+          .print-subtitle { font-size: 12px !important; }
+          .print-text { font-size: 10px !important; }
+          .print-table { font-size: 10px !important; }
+          .print-total { font-size: 14px !important; }
         }
       </style>
     `;
@@ -125,6 +138,12 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
     handlePrint();
   };
 
+  // Calculate responsive font sizes based on content
+  const itemCount = invoiceItems.length || 1;
+  const getResponsiveFontSize = (baseSize: string, smallSize: string) => {
+    return itemCount > 10 ? smallSize : baseSize;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6 space-y-6 animate-fade-in">
       {/* Header Actions */}
@@ -154,16 +173,16 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
       <div className="invoice-print-content">
         <div className="max-w-4xl mx-auto bg-white shadow-lg">
           {/* Header with Blue Gradient */}
-          <div className="invoice-header-bg bg-gradient-to-r from-blue-600 to-blue-500 text-white p-8">
-            <div className="grid grid-cols-2 gap-8">
+          <div className="invoice-header-bg bg-gradient-to-r from-blue-600 to-blue-500 text-white p-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <h1 className="text-4xl font-bold mb-2">
+                <h1 className={`print-header font-bold mb-1 ${getResponsiveFontSize('text-3xl', 'text-2xl')}`}>
                   {companyInfo?.company_name || 'Your Company'}
                 </h1>
-                <p className="text-blue-100 text-lg mb-4">
+                <p className={`text-blue-100 print-subtitle mb-2 ${getResponsiveFontSize('text-base', 'text-sm')}`}>
                   {companyInfo?.tagline ? companyInfo.tagline.replace(' Solutions', '') : 'Professional Services'}
                 </p>
-                <div className="text-sm text-blue-100 space-y-1">
+                <div className={`text-blue-100 space-y-0.5 print-text ${getResponsiveFontSize('text-xs', 'text-xs')}`}>
                   {companyInfo?.address && <p>{companyInfo.address}</p>}
                   {companyInfo?.phone && <p>Phone: {companyInfo.phone}</p>}
                   {companyInfo?.email && <p>Email: {companyInfo.email}</p>}
@@ -172,8 +191,8 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
               </div>
               
               <div className="text-right">
-                <h2 className="text-3xl font-bold mb-4">INVOICE</h2>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 space-y-2 text-sm">
+                <h2 className={`print-title font-bold mb-2 ${getResponsiveFontSize('text-2xl', 'text-xl')}`}>INVOICE</h2>
+                <div className={`bg-white/10 backdrop-blur-sm rounded-lg p-2 space-y-1 print-text ${getResponsiveFontSize('text-xs', 'text-xs')}`}>
                   <p><span className="font-medium">Invoice #:</span> {invoice.invoice_number}</p>
                   <p><span className="font-medium">Issue Date:</span> {formatDate(invoice.issue_date)}</p>
                   <p><span className="font-medium">Due Date:</span> {formatDate(invoice.due_date)}</p>
@@ -182,15 +201,15 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
             </div>
           </div>
 
-          <div className="p-8">
+          <div className="p-4">
             {/* Bill To Section */}
-            <div className="mb-8">
-              <div className="invoice-blue-accent bg-blue-600 text-white px-4 py-2 rounded-t-lg">
-                <h3 className="text-lg font-semibold">Bill To:</h3>
+            <div className="mb-4">
+              <div className="invoice-blue-accent bg-blue-600 text-white px-3 py-1 rounded-t-lg">
+                <h3 className={`font-semibold print-subtitle ${getResponsiveFontSize('text-base', 'text-sm')}`}>Bill To:</h3>
               </div>
-              <div className="border border-blue-200 border-t-0 rounded-b-lg p-4 bg-blue-50/30">
-                <div className="text-sm text-gray-700 space-y-1">
-                  <p className="font-medium text-lg invoice-blue-text text-blue-800">{invoice.clients?.company_name || 'Client Name'}</p>
+              <div className="border border-blue-200 border-t-0 rounded-b-lg p-3 bg-blue-50/30">
+                <div className={`text-gray-700 space-y-0.5 print-text ${getResponsiveFontSize('text-sm', 'text-xs')}`}>
+                  <p className={`font-medium invoice-blue-text text-blue-800 ${getResponsiveFontSize('text-base', 'text-sm')}`}>{invoice.clients?.company_name || 'Client Name'}</p>
                   {invoice.clients?.address && <p>{invoice.clients.address}</p>}
                   {invoice.clients?.email && <p>{invoice.clients.email}</p>}
                   {invoice.clients?.contact_name && <p>Contact: {invoice.clients.contact_name}</p>}
@@ -199,32 +218,32 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
             </div>
 
             {/* Invoice Items Table */}
-            <div className="mb-8 overflow-hidden rounded-lg border border-blue-200">
+            <div className="mb-4 overflow-hidden rounded-lg border border-blue-200">
               <table className="w-full">
                 <thead>
                   <tr className="invoice-blue-accent bg-blue-600 text-white">
-                    <th className="text-left py-4 px-6 font-semibold">Description</th>
-                    <th className="text-right py-4 px-6 font-semibold">Qty</th>
-                    <th className="text-right py-4 px-6 font-semibold">Unit Price</th>
-                    <th className="text-right py-4 px-6 font-semibold">Total</th>
+                    <th className={`text-left py-2 px-3 font-semibold print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>Description</th>
+                    <th className={`text-right py-2 px-3 font-semibold print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>Qty</th>
+                    <th className={`text-right py-2 px-3 font-semibold print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>Unit Price</th>
+                    <th className={`text-right py-2 px-3 font-semibold print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {invoiceItems.length > 0 ? (
                     invoiceItems.map((item, index) => (
                       <tr key={index} className={`${index % 2 === 0 ? 'bg-blue-50/30' : 'bg-white'} border-b border-blue-100`}>
-                        <td className="py-4 px-6 text-gray-800">{item.description}</td>
-                        <td className="py-4 px-6 text-right text-gray-800">{item.quantity}</td>
-                        <td className="py-4 px-6 text-right text-gray-800">{formatCurrency(item.unit_price)}</td>
-                        <td className="py-4 px-6 text-right text-gray-800 font-medium">{formatCurrency(item.line_total)}</td>
+                        <td className={`py-2 px-3 text-gray-800 print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>{item.description}</td>
+                        <td className={`py-2 px-3 text-right text-gray-800 print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>{item.quantity}</td>
+                        <td className={`py-2 px-3 text-right text-gray-800 print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>{formatCurrency(item.unit_price)}</td>
+                        <td className={`py-2 px-3 text-right text-gray-800 font-medium print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>{formatCurrency(item.line_total)}</td>
                       </tr>
                     ))
                   ) : (
                     <tr className="bg-blue-50/30 border-b border-blue-100">
-                      <td className="py-4 px-6 text-gray-800">Professional Services</td>
-                      <td className="py-4 px-6 text-right text-gray-800">1</td>
-                      <td className="py-4 px-6 text-right text-gray-800">{formatCurrency(invoice.subtotal)}</td>
-                      <td className="py-4 px-6 text-right text-gray-800 font-medium">{formatCurrency(invoice.subtotal)}</td>
+                      <td className={`py-2 px-3 text-gray-800 print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>Professional Services</td>
+                      <td className={`py-2 px-3 text-right text-gray-800 print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>1</td>
+                      <td className={`py-2 px-3 text-right text-gray-800 print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>{formatCurrency(invoice.subtotal)}</td>
+                      <td className={`py-2 px-3 text-right text-gray-800 font-medium print-table ${getResponsiveFontSize('text-sm', 'text-xs')}`}>{formatCurrency(invoice.subtotal)}</td>
                     </tr>
                   )}
                 </tbody>
@@ -232,19 +251,19 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
             </div>
 
             {/* Totals Section */}
-            <div className="flex justify-end mb-8">
-              <div className="w-80">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <div className="space-y-2">
+            <div className="flex justify-end mb-3">
+              <div className="w-64">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                  <div className="space-y-1">
                     {invoice.tax_amount > 0 && (
-                      <div className="flex justify-between py-1 text-gray-700">
+                      <div className={`flex justify-between text-gray-700 print-text ${getResponsiveFontSize('text-sm', 'text-xs')}`}>
                         <span>Tax:</span>
                         <span className="font-medium">{formatCurrency(invoice.tax_amount)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between py-1 font-bold text-xl">
-                      <span className="invoice-blue-text text-blue-800">Total:</span>
-                      <span className="invoice-blue-text text-blue-800">{formatCurrency(invoice.total_amount)}</span>
+                    <div className={`flex justify-between font-bold invoice-blue-text text-blue-800 print-total ${getResponsiveFontSize('text-lg', 'text-base')}`}>
+                      <span>Total:</span>
+                      <span>{formatCurrency(invoice.total_amount)}</span>
                     </div>
                   </div>
                 </div>
@@ -253,24 +272,24 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
 
             {/* Notes Section */}
             {invoice.notes && (
-              <div className="mb-8">
-                <div className="invoice-blue-accent bg-blue-600 text-white px-4 py-2 rounded-t-lg">
-                  <h3 className="text-lg font-semibold">Notes:</h3>
+              <div className="mb-3">
+                <div className="invoice-blue-accent bg-blue-600 text-white px-3 py-1 rounded-t-lg">
+                  <h3 className={`font-semibold print-subtitle ${getResponsiveFontSize('text-base', 'text-sm')}`}>Notes:</h3>
                 </div>
-                <div className="border border-blue-200 border-t-0 rounded-b-lg p-4 bg-blue-50/30">
-                  <p className="text-gray-700 whitespace-pre-wrap">{invoice.notes}</p>
+                <div className="border border-blue-200 border-t-0 rounded-b-lg p-3 bg-blue-50/30">
+                  <p className={`text-gray-700 whitespace-pre-wrap print-text ${getResponsiveFontSize('text-sm', 'text-xs')}`}>{invoice.notes}</p>
                 </div>
               </div>
             )}
 
             {/* Payment Information */}
             {companyInfo?.bank_name && (
-              <div className="mb-8">
-                <div className="invoice-blue-accent bg-blue-600 text-white px-4 py-2 rounded-t-lg">
-                  <h3 className="text-lg font-semibold">Payment Information:</h3>
+              <div className="mb-3">
+                <div className="invoice-blue-accent bg-blue-600 text-white px-3 py-1 rounded-t-lg">
+                  <h3 className={`font-semibold print-subtitle ${getResponsiveFontSize('text-base', 'text-sm')}`}>Payment Information:</h3>
                 </div>
-                <div className="border border-blue-200 border-t-0 rounded-b-lg p-4 bg-blue-50/30">
-                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+                <div className="border border-blue-200 border-t-0 rounded-b-lg p-3 bg-blue-50/30">
+                  <div className={`grid grid-cols-2 gap-3 text-gray-700 print-text ${getResponsiveFontSize('text-sm', 'text-xs')}`}>
                     <div>
                       <p><span className="font-medium invoice-blue-text text-blue-700">Bank:</span> {companyInfo.bank_name}</p>
                       <p><span className="font-medium invoice-blue-text text-blue-700">Account Name:</span> {companyInfo.account_name}</p>
@@ -285,9 +304,9 @@ const InvoiceView: React.FC<InvoiceViewProps> = ({ invoice, onBack, onEdit }) =>
             )}
 
             {/* Footer */}
-            <div className="text-center text-sm text-gray-500 border-t border-blue-200 pt-6">
+            <div className={`text-center text-gray-500 border-t border-blue-200 pt-3 print-text ${getResponsiveFontSize('text-sm', 'text-xs')}`}>
               <p className="font-medium invoice-blue-text text-blue-700">Thank you for your business!</p>
-              <p className="mt-2">
+              <p className="mt-1">
                 {companyInfo?.company_name || 'Your Company'} - Professional Invoice Management
               </p>
             </div>
