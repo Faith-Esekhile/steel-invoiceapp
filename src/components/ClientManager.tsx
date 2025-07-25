@@ -80,14 +80,14 @@ const ClientManager = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6 animate-fade-in">
+      <div className="space-y-6 animate-fade-in">
         <div className="text-center">Loading clients...</div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>

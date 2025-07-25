@@ -87,7 +87,7 @@ const Inventory = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6 animate-fade-in">
+      <div className="space-y-6 animate-fade-in">
         <div className="text-center py-8">
           <div className="text-lg">Loading inventory...</div>
         </div>
@@ -97,7 +97,7 @@ const Inventory = () => {
 
   if (error) {
     return (
-      <div className="p-6 space-y-6 animate-fade-in">
+      <div className="space-y-6 animate-fade-in">
         <div className="text-center py-8">
           <div className="text-red-600 text-lg">Error loading inventory</div>
           <p className="text-gray-600 mt-2">Please check your connection and try again</p>
@@ -107,7 +107,7 @@ const Inventory = () => {
   }
 
   return (
-    <div className="p-6 space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>

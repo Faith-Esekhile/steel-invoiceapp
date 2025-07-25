@@ -142,7 +142,7 @@ const DatabaseManager = () => {
   });
 
   return (
-    <div className="p-6 space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>

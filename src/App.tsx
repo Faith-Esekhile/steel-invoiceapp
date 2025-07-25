@@ -6,7 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import Navigation from "@/components/Navigation";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 import Index from "@/pages/Index";
 import Dashboard from "@/components/Dashboard";
 import ClientManager from "@/components/ClientManager";
@@ -35,24 +36,30 @@ const App = () => (
               path="/*"
               element={
                 <ProtectedRoute>
-                  <div className="min-h-screen bg-gray-50 flex">
-                    <div className="w-64 flex-shrink-0">
-                      <Navigation />
+                  <SidebarProvider>
+                    <div className="min-h-screen flex w-full bg-background">
+                      <AppSidebar />
+                      <main className="flex-1 flex flex-col overflow-hidden">
+                        <header className="h-12 flex items-center border-b bg-background px-4 lg:hidden">
+                          <SidebarTrigger className="mr-2" />
+                          <h1 className="text-lg font-semibold truncate">Marvellous Steel</h1>
+                        </header>
+                        <div className="flex-1 overflow-auto p-4 md:p-6">
+                          <Routes>
+                            <Route path="/" element={<Index />} />
+                            <Route path="/clients" element={<ClientManager />} />
+                            <Route path="/invoices" element={<InvoiceManager />} />
+                            <Route path="/inventory" element={<Inventory />} />
+                            <Route path="/warehouses" element={<WarehouseManager />} />
+                            <Route path="/expenses" element={<CompanyExpenses />} />
+                            <Route path="/settings" element={<Settings />} />
+                            <Route path="/database" element={<DatabaseManager />} />
+                            <Route path="*" element={<NotFound />} />
+                          </Routes>
+                        </div>
+                      </main>
                     </div>
-                    <div className="flex-1 overflow-auto">
-                      <Routes>
-                        <Route path="/" element={<Index />} />
-                        <Route path="/clients" element={<ClientManager />} />
-                        <Route path="/invoices" element={<InvoiceManager />} />
-                        <Route path="/inventory" element={<Inventory />} />
-                        <Route path="/warehouses" element={<WarehouseManager />} />
-                        <Route path="/expenses" element={<CompanyExpenses />} />
-                        <Route path="/settings" element={<Settings />} />
-                        <Route path="/database" element={<DatabaseManager />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </div>
-                  </div>
+                  </SidebarProvider>
                 </ProtectedRoute>
               }
             />

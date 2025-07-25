@@ -96,7 +96,7 @@ const Settings = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6 animate-fade-in">
+      <div className="space-y-6 animate-fade-in">
         <div className="text-center py-8">
           <div className="text-lg">Loading settings...</div>
         </div>
@@ -105,7 +105,7 @@ const Settings = () => {
   }
 
   return (
-    <div className="p-6 space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
