@@ -10,17 +10,15 @@ import {
   Calendar,
   AlertCircle
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useInvoices } from '@/hooks/useInvoices';
 import { useInventory } from '@/hooks/useInventory';
 import Profit from '@/components/Profit';
 import SalesChart from '@/components/charts/SalesChart';
 import ExpensesChart from '@/components/charts/ExpensesChart';
 
-interface DashboardProps {
-  onNavigate: (tab: string) => void;
-}
-
-const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
+const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const { data: invoices = [] } = useInvoices();
   const { data: inventory = [] } = useInventory();
 
@@ -54,7 +52,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           <p className="text-gray-600 mt-1">Welcome back! Here's what's happening with your business.</p>
         </div>
         <Button 
-          onClick={() => onNavigate('invoices')}
+          onClick={() => navigate('/invoices')}
           className="bg-blue-600 hover:bg-blue-700 text-white"
         >
           <FileText className="w-4 h-4 mr-2" />
@@ -141,7 +139,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => onNavigate('invoices')}
+                  onClick={() => navigate('/invoices')}
                   className="border-red-300 text-red-700 hover:bg-red-100"
                 >
                   View Overdue Invoices
@@ -163,7 +161,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => onNavigate('inventory')}
+                  onClick={() => navigate('/inventory')}
                   className="border-yellow-300 text-yellow-700 hover:bg-yellow-100"
                 >
                   Manage Inventory
@@ -189,7 +187,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                   variant="outline" 
                   size="sm" 
                   className="mt-3"
-                  onClick={() => onNavigate('invoices')}
+                  onClick={() => navigate('/invoices')}
                 >
                   Create Your First Invoice
                 </Button>
@@ -218,7 +216,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                   variant="outline" 
                   size="sm" 
                   className="w-full mt-4"
-                  onClick={() => onNavigate('invoices')}
+                  onClick={() => navigate('/invoices')}
                 >
                   View All Invoices
                 </Button>
@@ -234,7 +232,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           <CardContent className="space-y-3">
             <Button 
               className="w-full justify-start steel-button"
-              onClick={() => onNavigate('invoices')}
+              onClick={() => navigate('/invoices')}
             >
               <FileText className="w-4 h-4 mr-3" />
               Create New Invoice
@@ -242,7 +240,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             <Button 
               variant="outline" 
               className="w-full justify-start"
-              onClick={() => onNavigate('clients')}
+              onClick={() => navigate('/clients')}
             >
               <Users className="w-4 h-4 mr-3" />
               Add New Client
@@ -250,7 +248,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             <Button 
               variant="outline" 
               className="w-full justify-start"
-              onClick={() => onNavigate('inventory')}
+              onClick={() => navigate('/inventory')}
             >
               <Package className="w-4 h-4 mr-3" />
               Manage Inventory
