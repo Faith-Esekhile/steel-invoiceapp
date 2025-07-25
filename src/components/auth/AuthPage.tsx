@@ -8,16 +8,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 const AuthPage = () => {
-  const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    firstName: '',
-    lastName: '',
   });
 
-  const { signIn, signUp } = useAuth();
+  const { signIn } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,23 +22,13 @@ const AuthPage = () => {
     setLoading(true);
 
     try {
-      let result;
-      if (isLogin) {
-        result = await signIn(formData.email, formData.password);
-      } else {
-        result = await signUp(formData.email, formData.password, formData.firstName, formData.lastName);
-      }
+      const result = await signIn(formData.email, formData.password);
 
       if (result.error) {
         toast({
           title: 'Error',
           description: result.error.message,
           variant: 'destructive',
-        });
-      } else if (!isLogin) {
-        toast({
-          title: 'Success',
-          description: 'Account created successfully! Please check your email to verify your account.',
         });
       }
     } catch (error) {
@@ -80,38 +67,11 @@ const AuthPage = () => {
         <Card className="steel-card">
           <CardHeader>
             <CardTitle className="text-center">
-              {isLogin ? 'Sign In' : 'Create Account'}
+              Sign In
             </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              {!isLogin && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      required={!isLogin}
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      required={!isLogin}
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                </div>
-              )}
-
               <div>
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -141,19 +101,9 @@ const AuthPage = () => {
                 className="w-full steel-button"
                 disabled={loading}
               >
-                {loading ? 'Loading...' : (isLogin ? 'Sign In' : 'Create Account')}
+                {loading ? 'Loading...' : 'Sign In'}
               </Button>
             </form>
-
-            <div className="mt-4 text-center">
-              <Button
-                variant="ghost"
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-primary-600 hover:text-primary-700"
-              >
-                {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
-              </Button>
-            </div>
           </CardContent>
         </Card>
       </div>
