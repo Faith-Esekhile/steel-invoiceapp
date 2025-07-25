@@ -32,17 +32,13 @@ const DatabaseManager = () => {
 
   // Fetch invoice items
   const { data: invoiceItems = [] } = useQuery({
-    queryKey: ['invoice_items', user?.id],
+    queryKey: ['invoice_items'],
     queryFn: async () => {
       if (!user) return [];
       
       const { data, error } = await supabase
         .from('invoice_items')
-        .select(`
-          *,
-          invoices!inner(user_id)
-        `)
-        .eq('invoices.user_id', user.id);
+        .select('*');
       
       if (error) throw error;
       return data;
@@ -50,16 +46,15 @@ const DatabaseManager = () => {
     enabled: !!user,
   });
 
-  // Fetch user profile
+  // Fetch all profiles
   const { data: profiles = [] } = useQuery({
-    queryKey: ['profiles', user?.id],
+    queryKey: ['profiles'],
     queryFn: async () => {
       if (!user) return [];
       
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
-        .eq('id', user.id);
+        .select('*');
       
       if (error) throw error;
       return data;
