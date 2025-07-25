@@ -12,14 +12,13 @@ export const useCompanyExpenses = () => {
   const { user } = useAuth();
   
   return useQuery({
-    queryKey: ['company_expenses', user?.id],
+    queryKey: ['company_expenses'],
     queryFn: async () => {
       if (!user) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
         .from('company_expenses')
         .select('*')
-        .eq('user_id', user.id)
         .order('expense_date', { ascending: false });
       
       if (error) throw error;

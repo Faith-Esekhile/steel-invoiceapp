@@ -12,14 +12,13 @@ export const useWarehouseLocations = () => {
   const { user } = useAuth();
   
   return useQuery({
-    queryKey: ['warehouse_locations', user?.id],
+    queryKey: ['warehouse_locations'],
     queryFn: async () => {
       if (!user) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
         .from('warehouse_locations')
         .select('*')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: true });
       
       if (error) throw error;

@@ -12,14 +12,13 @@ export const useInventory = () => {
   const { user } = useAuth();
   
   return useQuery({
-    queryKey: ['inventory', user?.id],
+    queryKey: ['inventory'],
     queryFn: async () => {
       if (!user) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
         .from('inventory')
         .select('*')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
       if (error) throw error;

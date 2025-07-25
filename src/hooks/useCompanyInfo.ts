@@ -12,14 +12,13 @@ export const useCompanyInfo = () => {
   const { user } = useAuth();
   
   return useQuery({
-    queryKey: ['company_info', user?.id],
+    queryKey: ['company_info'],
     queryFn: async () => {
       if (!user) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
         .from('company_info')
         .select('*')
-        .eq('user_id', user.id)
         .maybeSingle();
       
       if (error) throw error;
@@ -41,7 +40,6 @@ export const useUpdateCompanyInfo = () => {
       const { data: existing, error: checkError } = await supabase
         .from('company_info')
         .select('id')
-        .eq('user_id', user.id)
         .maybeSingle();
       
       if (checkError) throw checkError;
@@ -51,7 +49,7 @@ export const useUpdateCompanyInfo = () => {
         const { data, error } = await supabase
           .from('company_info')
           .update(updates)
-          .eq('user_id', user.id)
+          .eq('id', existing.id)
           .select()
           .single();
         
