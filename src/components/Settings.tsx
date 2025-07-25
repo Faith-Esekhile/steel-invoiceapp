@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { 
-  User, 
   Building, 
   CreditCard,
   Save
@@ -16,16 +15,8 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const Settings = () => {
   const { toast } = useToast();
-  const { user } = useAuth();
   const { data: companyInfo, isLoading } = useCompanyInfo();
   const updateCompanyInfo = useUpdateCompanyInfo();
-  
-  const [userProfile, setUserProfile] = useState({
-    firstName: 'Admin',
-    lastName: 'User',
-    email: user?.email || 'admin@marvellous-steel.com',
-    phone: '+234 (0) 123-456-7890'
-  });
 
   const [companySettings, setCompanySettings] = useState({
     company_name: 'Marvellous Steel Enterprise',
@@ -66,13 +57,6 @@ const Settings = () => {
     }
   }, [companyInfo]);
 
-  const handleSaveProfile = () => {
-    console.log('Saving user profile:', userProfile);
-    toast({
-      title: "Success",
-      description: "User profile saved successfully",
-    });
-  };
 
   const handleSaveCompany = async () => {
     try {
@@ -129,56 +113,6 @@ const Settings = () => {
       </div>
 
       <div className="max-w-4xl space-y-6">
-        {/* User Profile */}
-        <Card className="steel-card">
-          <CardHeader>
-            <CardTitle className="flex items-center text-lg font-semibold text-gray-900">
-              <User className="w-5 h-5 mr-2" />
-              User Profile
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  value={userProfile.firstName}
-                  onChange={(e) => setUserProfile({...userProfile, firstName: e.target.value})}
-                />
-              </div>
-              <div>
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  value={userProfile.lastName}
-                  onChange={(e) => setUserProfile({...userProfile, lastName: e.target.value})}
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={userProfile.email}
-                onChange={(e) => setUserProfile({...userProfile, email: e.target.value})}
-              />
-            </div>
-            <div>
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input
-                id="phone"
-                value={userProfile.phone}
-                onChange={(e) => setUserProfile({...userProfile, phone: e.target.value})}
-              />
-            </div>
-            <Button onClick={handleSaveProfile} className="steel-button">
-              <Save className="w-4 h-4 mr-2" />
-              Save Profile
-            </Button>
-          </CardContent>
-        </Card>
 
         {/* Company Settings */}
         <Card className="steel-card">
