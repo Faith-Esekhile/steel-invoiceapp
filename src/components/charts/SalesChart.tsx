@@ -1,12 +1,13 @@
 
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useInvoices } from '@/hooks/useInvoices';
+import { useInvoices, useBackdatedInvoices } from '@/hooks/useInvoices';
 import { useInvoiceItems } from '@/hooks/useInvoiceItems';
 import { useInventory } from '@/hooks/useInventory';
 
 const SalesChart = () => {
   const { data: invoices = [] } = useInvoices();
+  const { data: backdatedInvoices = [] } = useBackdatedInvoices();
   const { data: inventory = [] } = useInventory();
 
   // Create monthly sales data for actual inventory items
@@ -23,28 +24,35 @@ const SalesChart = () => {
       monthlyData[month] = { month };
     });
 
-    // Process paid invoices only
-    const paidInvoices = invoices.filter(invoice => invoice.status === 'paid');
+    // Combine regular and backdated invoices for sales calculation
+    const allInvoices = [...invoices, ...backdatedInvoices];
     
-    // For now, we'll use a simplified approach since we need to relate invoice items to inventory
-    // In a real scenario, you'd want to fetch invoice items for each invoice
+    // Process paid invoices only
+    const paidInvoices = allInvoices.filter(invoice => invoice.status === 'paid');
+    
+    // Create a more realistic distribution based on inventory items
+    // This simulates actual sales data until we have proper invoice items tracking
     paidInvoices.forEach(invoice => {
       const date = new Date(invoice.issue_date);
       const monthName = months[date.getMonth()];
       
-      // Get inventory items that might match this invoice
-      // For demonstration, we'll distribute the invoice amount across available inventory items
-      const availableItems = inventory.slice(0, 3); // Take first 3 items for demo
+      // Use all available inventory items for more realistic distribution
+      const availableItems = inventory.filter(item => item.status === 'in_stock' || item.status === 'low_stock');
       
       if (availableItems.length > 0) {
-        const amountPerItem = invoice.subtotal / availableItems.length;
+        // Simulate realistic sales distribution - some items sell more than others
+        const totalWeight = availableItems.length;
         
-        availableItems.forEach(item => {
+        availableItems.forEach((item, index) => {
           const itemName = item.name;
+          // Create weighted distribution where earlier items (presumably more popular) get higher sales
+          const weight = (totalWeight - index) / totalWeight;
+          const itemSales = (invoice.subtotal * weight) / totalWeight;
+          
           if (typeof monthlyData[monthName][itemName] !== 'number') {
             monthlyData[monthName][itemName] = 0;
           }
-          monthlyData[monthName][itemName] = (monthlyData[monthName][itemName] as number) + amountPerItem;
+          monthlyData[monthName][itemName] = (monthlyData[monthName][itemName] as number) + itemSales;
         });
       }
     });
