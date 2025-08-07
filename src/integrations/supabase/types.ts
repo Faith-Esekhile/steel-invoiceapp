@@ -238,6 +238,7 @@ export type Database = {
           due_date: string
           id: string
           invoice_number: string
+          is_backdated: boolean
           issue_date: string
           notes: string | null
           status: string
@@ -253,6 +254,7 @@ export type Database = {
           due_date: string
           id?: string
           invoice_number: string
+          is_backdated?: boolean
           issue_date: string
           notes?: string | null
           status?: string
@@ -268,6 +270,7 @@ export type Database = {
           due_date?: string
           id?: string
           invoice_number?: string
+          is_backdated?: boolean
           issue_date?: string
           notes?: string | null
           status?: string

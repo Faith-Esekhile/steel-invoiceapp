@@ -12,6 +12,7 @@ import Index from "@/pages/Index";
 import Dashboard from "@/components/Dashboard";
 import ClientManager from "@/components/ClientManager";
 import InvoiceManager from "@/components/InvoiceManager";
+import BackdatedInvoiceManager from "@/components/BackdatedInvoiceManager";
 import InvoiceView from "@/components/InvoiceView";
 import Inventory from "@/components/Inventory";
 import WarehouseManager from "@/components/WarehouseManager";
@@ -46,13 +47,14 @@ const App = () => (
                         </header>
                         <div className="flex-1 overflow-auto p-4 md:p-6">
                           <Routes>
-                            <Route path="/" element={<Index />} />
-                            <Route path="/clients" element={<ClientManager />} />
-                            <Route path="/invoices" element={<InvoiceManager />} />
-                            <Route path="/inventory" element={<Inventory />} />
-                            <Route path="/warehouses" element={<WarehouseManager />} />
-                            <Route path="/expenses" element={<CompanyExpenses />} />
-                            <Route path="/settings" element={<Settings />} />
+              <Route path="/" element={<Index />} />
+              <Route path="/clients" element={<ClientManager />} />
+              <Route path="/invoices" element={<InvoiceManager />} />
+              <Route path="/backdated-invoices" element={<BackdatedInvoiceManager />} />
+              <Route path="/inventory" element={<Inventory />} />
+              <Route path="/warehouses" element={<WarehouseManager />} />
+              <Route path="/expenses" element={<CompanyExpenses />} />
+              <Route path="/settings" element={<Settings />} />
                             <Route path="/database" element={<DatabaseManager />} />
                             <Route path="*" element={<NotFound />} />
                           </Routes>

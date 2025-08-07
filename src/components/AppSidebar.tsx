@@ -30,6 +30,7 @@ const navigationItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/clients', icon: Users, label: 'Clients' },
   { path: '/invoices', icon: FileText, label: 'Invoices' },
+  { path: '/backdated-invoices', icon: FileText, label: 'Backdated Invoices' },
   { path: '/inventory', icon: Package, label: 'Inventory' },
   { path: '/warehouses', icon: Warehouse, label: 'Warehouses' },
   { path: '/expenses', icon: Receipt, label: 'Expenses' },

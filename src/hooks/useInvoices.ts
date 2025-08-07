@@ -28,6 +28,37 @@ export const useInvoices = () => {
             address
           )
         `)
+        .eq('is_backdated', false)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+};
+
+export const useBackdatedInvoices = () => {
+  const { user } = useAuth();
+  
+  return useQuery({
+    queryKey: ['backdated-invoices', user?.id],
+    queryFn: async () => {
+      if (!user) throw new Error('User not authenticated');
+      
+      const { data, error } = await supabase
+        .from('invoices')
+        .select(`
+          *,
+          clients (
+            id,
+            company_name,
+            contact_name,
+            email,
+            address
+          )
+        `)
+        .eq('is_backdated', true)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -47,7 +78,7 @@ export const useCreateInvoice = () => {
       
       const { data, error } = await supabase
         .from('invoices')
-        .insert({ ...invoice, user_id: user.id })
+        .insert({ ...invoice, user_id: user.id, is_backdated: false })
         .select()
         .single();
       
@@ -56,6 +87,29 @@ export const useCreateInvoice = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
+    },
+  });
+};
+
+export const useCreateBackdatedInvoice = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  
+  return useMutation({
+    mutationFn: async (invoice: Omit<InvoiceInsert, 'user_id' | 'id'>) => {
+      if (!user) throw new Error('User not authenticated');
+      
+      const { data, error } = await supabase
+        .from('invoices')
+        .insert({ ...invoice, user_id: user.id, is_backdated: true })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['backdated-invoices'] });
     },
   });
 };
@@ -77,6 +131,7 @@ export const useUpdateInvoice = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['backdated-invoices'] });
     },
   });
 };
@@ -95,6 +150,7 @@ export const useDeleteInvoice = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['backdated-invoices'] });
     },
   });
 };
