@@ -2,15 +2,19 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, TrendingDown } from 'lucide-react';
-import { useInvoices } from '@/hooks/useInvoices';
+import { useInvoices, useBackdatedInvoices } from '@/hooks/useInvoices';
 import { useCompanyExpenses } from '@/hooks/useCompanyExpenses';
 
 const Profit = () => {
   const { data: invoices = [] } = useInvoices();
+  const { data: backdatedInvoices = [] } = useBackdatedInvoices();
   const { data: expenses = [] } = useCompanyExpenses();
 
-  // Calculate total revenue from paid invoices
-  const totalRevenue = invoices
+  // Combine regular and backdated invoices for revenue calculation
+  const allInvoices = [...invoices, ...backdatedInvoices];
+
+  // Calculate total revenue from paid invoices (including backdated)
+  const totalRevenue = allInvoices
     .filter(inv => inv.status === 'paid')
     .reduce((sum, inv) => sum + inv.total_amount, 0);
   

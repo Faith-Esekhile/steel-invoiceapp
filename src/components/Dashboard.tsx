@@ -11,7 +11,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useInvoices } from '@/hooks/useInvoices';
+import { useInvoices, useBackdatedInvoices } from '@/hooks/useInvoices';
 import { useInventory } from '@/hooks/useInventory';
 import Profit from '@/components/Profit';
 import SalesChart from '@/components/charts/SalesChart';
@@ -20,14 +20,18 @@ import ExpensesChart from '@/components/charts/ExpensesChart';
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { data: invoices = [] } = useInvoices();
+  const { data: backdatedInvoices = [] } = useBackdatedInvoices();
   const { data: inventory = [] } = useInventory();
 
+  // Combine regular and backdated invoices for calculations
+  const allInvoices = [...invoices, ...backdatedInvoices];
+
   // Calculate stats
-  const totalRevenue = invoices
+  const totalRevenue = allInvoices
     .filter(inv => inv.status === 'paid')
     .reduce((sum, inv) => sum + inv.total_amount, 0);
   
-  const pendingAmount = invoices
+  const pendingAmount = allInvoices
     .filter(inv => inv.status === 'pending')
     .reduce((sum, inv) => sum + inv.total_amount, 0);
   
@@ -90,8 +94,8 @@ const Dashboard: React.FC = () => {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-steel-600">Total Invoices</p>
-                <p className="text-2xl font-bold text-blue-600">{invoices.length}</p>
+                 <p className="text-sm font-medium text-steel-600">Total Invoices</p>
+                <p className="text-2xl font-bold text-blue-600">{allInvoices.length}</p>
               </div>
               <FileText className="w-8 h-8 text-blue-600" />
             </div>
