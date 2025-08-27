@@ -250,6 +250,7 @@ export type Database = {
           invoice_number: string
           is_backdated: boolean
           issue_date: string
+          items_summary: string | null
           notes: string | null
           status: string
           subtotal: number
@@ -266,6 +267,7 @@ export type Database = {
           invoice_number: string
           is_backdated?: boolean
           issue_date: string
+          items_summary?: string | null
           notes?: string | null
           status?: string
           subtotal?: number
@@ -282,6 +284,7 @@ export type Database = {
           invoice_number?: string
           is_backdated?: boolean
           issue_date?: string
+          items_summary?: string | null
           notes?: string | null
           status?: string
           subtotal?: number

@@ -290,6 +290,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
     }
 
     const subtotal = calculateSubtotal();
+    const itemsSummary = items.map(item => `${item.quantity}x ${item.description}`).join(', ');
     const invoiceData = {
       client_id: formData.client_id,
       invoice_number: formData.invoice_number,
@@ -299,7 +300,8 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
       status: formData.status,
       subtotal: subtotal,
       tax_amount: 0,
-      total_amount: subtotal
+      total_amount: subtotal,
+      items_summary: itemsSummary
     };
 
     console.log('Final invoice data being submitted:', invoiceData);

@@ -239,6 +239,7 @@ const BackdatedInvoiceModal: React.FC<BackdatedInvoiceModalProps> = ({ isOpen, o
     }
 
     const subtotal = calculateSubtotal();
+    const itemsSummary = items.map(item => `${item.quantity}x ${item.description}`).join(', ');
     const invoiceData = {
       client_id: formData.client_id,
       invoice_number: formData.invoice_number,
@@ -249,6 +250,7 @@ const BackdatedInvoiceModal: React.FC<BackdatedInvoiceModalProps> = ({ isOpen, o
       subtotal: subtotal,
       tax_amount: 0,
       total_amount: subtotal,
+      items_summary: itemsSummary,
       is_backdated: true
     };
 
