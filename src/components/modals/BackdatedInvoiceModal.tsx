@@ -268,6 +268,7 @@ const BackdatedInvoiceModal: React.FC<BackdatedInvoiceModalProps> = ({ isOpen, o
         // Create invoice items (no inventory reduction for backdated invoices)
         const invoiceItems = items.map(item => ({
           invoice_id: invoiceId,
+          inventory_item_id: null, // Backdated invoices don't link to current inventory
           description: item.description,
           quantity: item.quantity,
           unit_price: item.unit_price,

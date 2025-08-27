@@ -322,6 +322,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, invoice })
         // Create invoice items with inventory_id
         const invoiceItems = items.map(item => ({
           invoice_id: invoiceId,
+          inventory_item_id: item.inventory_id || null,
           description: item.description,
           quantity: item.quantity,
           unit_price: item.unit_price,

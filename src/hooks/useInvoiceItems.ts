@@ -17,7 +17,15 @@ export const useInvoiceItems = (invoiceId?: string) => {
       
       const { data, error } = await supabase
         .from('invoice_items')
-        .select('*')
+        .select(`
+          *,
+          inventory:inventory_item_id (
+            id,
+            name,
+            unit_price,
+            category
+          )
+        `)
         .eq('invoice_id', invoiceId)
         .order('created_at', { ascending: true });
       
