@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -198,6 +198,7 @@ export type Database = {
           created_at: string | null
           description: string
           id: string
+          inventory_item_id: string | null
           invoice_id: string
           line_total: number
           quantity: number
@@ -207,6 +208,7 @@ export type Database = {
           created_at?: string | null
           description: string
           id?: string
+          inventory_item_id?: string | null
           invoice_id: string
           line_total?: number
           quantity?: number
@@ -216,12 +218,20 @@ export type Database = {
           created_at?: string | null
           description?: string
           id?: string
+          inventory_item_id?: string | null
           invoice_id?: string
           line_total?: number
           quantity?: number
           unit_price?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "invoice_items_inventory_item_id_fkey"
+            columns: ["inventory_item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "invoice_items_invoice_id_fkey"
             columns: ["invoice_id"]
