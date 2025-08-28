@@ -359,7 +359,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_invoice_items_summary: {
+        Args: { invoice_uuid: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
