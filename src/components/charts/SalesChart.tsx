@@ -97,7 +97,10 @@ const SalesChart = () => {
       }
     });
 
-    return Object.values(monthlyData);
+    console.log('Final monthly data structure:', monthlyData);
+    const result = Object.values(monthlyData);
+    console.log('Chart data array:', result);
+    return result;
   }, [invoiceItemsData]);
 
   const data = createMonthlySalesData;
