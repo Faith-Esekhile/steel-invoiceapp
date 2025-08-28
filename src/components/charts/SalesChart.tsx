@@ -1,7 +1,6 @@
 
 import React, { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { useInvoices, useBackdatedInvoices } from '@/hooks/useInvoices';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,7 +31,12 @@ const SalesChart = () => {
         .eq('invoices.status', 'paid')
         .eq('invoices.user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('SalesChart query error:', error);
+        throw error;
+      }
+      
+      console.log('SalesChart data fetched:', data?.length || 0, 'items');
       return data || [];
     },
     enabled: !!user,
@@ -51,13 +55,17 @@ const SalesChart = () => {
       monthlyData[month] = { month };
     });
 
-    // Calculate actual sales from invoice items
+    // Calculate actual sales from invoice items using description as product name
+    console.log('Processing', invoiceItemsData.length, 'invoice items for chart');
     invoiceItemsData.forEach(item => {
-      if (item.invoices && item.inventory) {
+      if (item.invoices) {
         const date = new Date(item.invoices.issue_date);
         const monthName = months[date.getMonth()];
-        const productName = item.inventory.name;
+        // Use inventory name if available, otherwise use description
+        const productName = item.inventory?.name || item.description || 'Unknown Product';
         const salesAmount = item.quantity * item.unit_price;
+        
+        console.log(`Adding ${salesAmount} for ${productName} in ${monthName}`);
         
         if (typeof monthlyData[monthName][productName] !== 'number') {
           monthlyData[monthName][productName] = 0;
