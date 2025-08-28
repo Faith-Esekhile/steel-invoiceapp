@@ -8,23 +8,13 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const SalesChart = () => {
   const { user } = useAuth();
-  const { data: invoices = [] } = useInvoices();
-  const { data: backdatedInvoices = [] } = useBackdatedInvoices();
 
-  // Fetch all invoice items for paid invoices
+  // Fetch all invoice items for paid invoices directly
   const { data: invoiceItemsData = [] } = useQuery({
-    queryKey: ['all_invoice_items', user?.id],
+    queryKey: ['sales_chart_data', user?.id],
     queryFn: async () => {
       if (!user) return [];
       
-      // Get all paid invoices
-      const allInvoices = [...invoices, ...backdatedInvoices];
-      const paidInvoiceIds = allInvoices
-        .filter(invoice => invoice.status === 'paid')
-        .map(invoice => invoice.id);
-
-      if (paidInvoiceIds.length === 0) return [];
-
       const { data, error } = await supabase
         .from('invoice_items')
         .select(`
@@ -32,18 +22,20 @@ const SalesChart = () => {
           invoices!inner (
             id,
             issue_date,
-            status
+            status,
+            user_id
           ),
           inventory:inventory_item_id (
             name
           )
         `)
-        .in('invoice_id', paidInvoiceIds);
+        .eq('invoices.status', 'paid')
+        .eq('invoices.user_id', user.id);
 
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user && (invoices.length > 0 || backdatedInvoices.length > 0),
+    enabled: !!user,
   });
 
   const createMonthlySalesData = useMemo(() => {
@@ -120,60 +112,69 @@ const SalesChart = () => {
         <p className="text-sm text-gray-500">Actual sales revenue per product by month (Top 8 products)</p>
       </div>
       <div className="w-full h-80">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={data}
-            margin={{
-              top: 20,
-              right: 30,
-              left: 20,
-              bottom: 5,
-            }}
-          >
-            <CartesianGrid 
-              strokeDasharray="3 3" 
-              stroke="#f1f5f9"
-              vertical={false}
-            />
-            <XAxis 
-              dataKey="month" 
-              stroke="#64748b"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-            />
-            <YAxis 
-              stroke="#64748b"
-              fontSize={12}
-              tickFormatter={formatCurrency}
-              tickLine={false}
-              axisLine={false}
-            />
-            <Tooltip 
-              formatter={(value: number, name: string) => [formatCurrency(value), name]}
-              labelStyle={{ color: '#1f2937', fontWeight: '500' }}
-              contentStyle={{
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                border: 'none',
-                borderRadius: '12px',
-                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                backdropFilter: 'blur(8px)'
+        {getTopProducts.length === 0 ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <p className="text-gray-500 text-sm">No sales data available</p>
+              <p className="text-gray-400 text-xs mt-1">Create paid invoices to see sales analytics</p>
+            </div>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={data}
+              margin={{
+                top: 20,
+                right: 30,
+                left: 20,
+                bottom: 5,
               }}
-            />
-            <Legend 
-              wrapperStyle={{ paddingTop: '20px' }}
-              iconType="rect"
-            />
-            {getTopProducts.map((productName, index) => (
-              <Bar
-                key={productName}
-                dataKey={productName}
-                fill={colors[index % colors.length]}
-                radius={[2, 2, 0, 0]}
+            >
+              <CartesianGrid 
+                strokeDasharray="3 3" 
+                stroke="#f1f5f9"
+                vertical={false}
               />
-            ))}
-          </BarChart>
-        </ResponsiveContainer>
+              <XAxis 
+                dataKey="month" 
+                stroke="#64748b"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis 
+                stroke="#64748b"
+                fontSize={12}
+                tickFormatter={formatCurrency}
+                tickLine={false}
+                axisLine={false}
+              />
+              <Tooltip 
+                formatter={(value: number, name: string) => [formatCurrency(value), name]}
+                labelStyle={{ color: '#1f2937', fontWeight: '500' }}
+                contentStyle={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                  backdropFilter: 'blur(8px)'
+                }}
+              />
+              <Legend 
+                wrapperStyle={{ paddingTop: '20px' }}
+                iconType="rect"
+              />
+              {getTopProducts.map((productName, index) => (
+                <Bar
+                  key={productName}
+                  dataKey={productName}
+                  fill={colors[index % colors.length]}
+                  radius={[2, 2, 0, 0]}
+                />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        )}
       </div>
     </div>
   );
