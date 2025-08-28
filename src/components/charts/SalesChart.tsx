@@ -8,36 +8,59 @@ import { useAuth } from '@/contexts/AuthContext';
 const SalesChart = () => {
   const { user } = useAuth();
 
-  // Fetch all invoice items for paid invoices directly
+  // Fetch all paid invoices and their items
   const { data: invoiceItemsData = [] } = useQuery({
     queryKey: ['sales_chart_data', user?.id],
     queryFn: async () => {
       if (!user) return [];
       
-      const { data, error } = await supabase
+      // First, get all paid invoices (both regular and backdated)
+      const { data: paidInvoices, error: invoicesError } = await supabase
+        .from('invoices')
+        .select('id, issue_date, status, is_backdated')
+        .eq('status', 'paid')
+        .eq('user_id', user.id);
+
+      if (invoicesError) {
+        console.error('Error fetching paid invoices:', invoicesError);
+        throw invoicesError;
+      }
+
+      console.log('Found paid invoices:', paidInvoices?.length || 0);
+
+      if (!paidInvoices || paidInvoices.length === 0) {
+        return [];
+      }
+
+      // Get invoice items for all paid invoices
+      const paidInvoiceIds = paidInvoices.map(inv => inv.id);
+      
+      const { data: invoiceItems, error: itemsError } = await supabase
         .from('invoice_items')
         .select(`
           *,
-          invoices!inner (
-            id,
-            issue_date,
-            status,
-            user_id
-          ),
           inventory:inventory_item_id (
             name
           )
         `)
-        .eq('invoices.status', 'paid')
-        .eq('invoices.user_id', user.id);
+        .in('invoice_id', paidInvoiceIds);
 
-      if (error) {
-        console.error('SalesChart query error:', error);
-        throw error;
+      if (itemsError) {
+        console.error('Error fetching invoice items:', itemsError);
+        throw itemsError;
       }
+
+      // Combine the data
+      const combinedData = invoiceItems?.map(item => {
+        const invoice = paidInvoices.find(inv => inv.id === item.invoice_id);
+        return {
+          ...item,
+          invoices: invoice
+        };
+      }) || [];
       
-      console.log('SalesChart data fetched:', data?.length || 0, 'items');
-      return data || [];
+      console.log('SalesChart combined data:', combinedData.length, 'items from', paidInvoices.length, 'paid invoices');
+      return combinedData;
     },
     enabled: !!user,
   });
