@@ -12,55 +12,56 @@ const SalesChart = () => {
   const { data: invoiceItemsData = [] } = useQuery({
     queryKey: ['sales_chart_data', user?.id],
     queryFn: async () => {
-      if (!user) return [];
-      
-      // First, get all paid invoices (both regular and backdated)
+      // Fetch ALL paid invoices (regular and backdated), regardless of creator
       const { data: paidInvoices, error: invoicesError } = await supabase
         .from('invoices')
-        .select('id, issue_date, status, is_backdated')
-        .eq('status', 'paid')
-        .eq('user_id', user.id);
+        .select(`
+          id,
+          issue_date,
+          status,
+          is_backdated,
+          total_amount,
+          items:invoice_items (
+            quantity,
+            unit_price,
+            description,
+            inventory:inventory_item_id ( name )
+          )
+        `)
+        .eq('status', 'paid');
 
       if (invoicesError) {
         console.error('Error fetching paid invoices:', invoicesError);
         throw invoicesError;
       }
 
-      console.log('Found paid invoices:', paidInvoices?.length || 0);
+      const count = Array.isArray(paidInvoices) ? paidInvoices.length : 0;
+      console.log('Found paid invoices:', count);
 
       if (!paidInvoices || paidInvoices.length === 0) {
         return [];
       }
 
-      // Get invoice items for all paid invoices
-      const paidInvoiceIds = paidInvoices.map(inv => inv.id);
-      
-      const { data: invoiceItems, error: itemsError } = await supabase
-        .from('invoice_items')
-        .select(`
-          *,
-          inventory:inventory_item_id (
-            name
-          )
-        `)
-        .in('invoice_id', paidInvoiceIds);
+      // Flatten items; fallback to invoice total when no items exist (historical invoices)
+      const combinedItems = paidInvoices.flatMap((inv: any) => {
+        const items = inv.items || [];
+        if (items.length > 0) {
+          return items.map((it: any) => ({
+            ...it,
+            invoice_issue_date: inv.issue_date
+          }));
+        }
+        return [{
+          description: 'Invoice Total',
+          quantity: 1,
+          unit_price: Number(inv.total_amount) || 0,
+          inventory: null,
+          invoice_issue_date: inv.issue_date
+        }];
+      });
 
-      if (itemsError) {
-        console.error('Error fetching invoice items:', itemsError);
-        throw itemsError;
-      }
-
-      // Combine the data
-      const combinedData = invoiceItems?.map(item => {
-        const invoice = paidInvoices.find(inv => inv.id === item.invoice_id);
-        return {
-          ...item,
-          invoices: invoice
-        };
-      }) || [];
-      
-      console.log('SalesChart combined data:', combinedData.length, 'items from', paidInvoices.length, 'paid invoices');
-      return combinedData;
+      console.log('SalesChart combined items:', combinedItems.length, 'from', count, 'paid invoices');
+      return combinedItems;
     },
     enabled: !!user,
   });
@@ -80,13 +81,16 @@ const SalesChart = () => {
 
     // Calculate actual sales from invoice items using description as product name
     console.log('Processing', invoiceItemsData.length, 'invoice items for chart');
-    invoiceItemsData.forEach(item => {
-      if (item.invoices) {
-        const date = new Date(item.invoices.issue_date);
+    invoiceItemsData.forEach((item: any) => {
+      const issueDate = item.invoice_issue_date;
+      if (issueDate) {
+        const date = new Date(issueDate);
         const monthName = months[date.getMonth()];
         // Use inventory name if available, otherwise use description
         const productName = item.inventory?.name || item.description || 'Unknown Product';
-        const salesAmount = item.quantity * item.unit_price;
+        const qty = Number(item.quantity) || 0;
+        const price = Number(item.unit_price) || 0;
+        const salesAmount = qty * price;
         
         console.log(`Adding ${salesAmount} for ${productName} in ${monthName}`);
         
